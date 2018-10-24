@@ -4,7 +4,7 @@ This project envolves a team effort in designing and implementing a Java project
 a large corpus of documents provided by the lecturer. 
 
 The data set contains files from:
-1. The Financial Times Limited (1991, 1992, 1993, 1994),  the Financial Times Limited (1991, 1992, 1993, 1994), 
+1. The Financial Times Limited (1991, 1992, 1993, 1994) 
 2. The Federal Register (1994)
 3. The Foreign Broadcast Information Service (1996) 
 4. The Los Angeles Times (1989, 1990).
