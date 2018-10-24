@@ -1,6 +1,12 @@
 # IR_proj2_group14
-git repo for CS7IS3 - Information Retrieval and Web Search in TCD. 
+git repository for CS7IS3 - Information Retrieval and Web Search in TCD. 
+This project envolves a team effort in designing and implementing a Java project using the Apache Lucene library to search 
+a large corpus of documents provided by the lecturer. 
 
-TODO:
-1. Everyone should checkout their own branches to develop on.
-2. Create methods/classes etc to read in and parse the documents from each fo the 4 document corpus'.
+The data set contains files from:
+1. The Financial Times Limited (1991, 1992, 1993, 1994),  the Financial Times Limited (1991, 1992, 1993, 1994), 
+2. The Federal Register (1994)
+3. The Foreign Broadcast Information Service (1996) 
+4. The Los Angeles Times (1989, 1990).
+
+  
