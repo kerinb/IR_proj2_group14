@@ -19,18 +19,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FinTimesLib {
-    public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) {
+    public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) throws IOException {
         for(String fileName : finTimesFiles){
             System.out.println(fileName);
 
             try {
-                BufferedReader bf = new BufferedReader(new FileReader(fileName));
+                BufferedReader br = new BufferedReader(new FileReader(fileName));
+                String currLine;
 
+                while((currLine = br.readLine()) != null){
+                    currLine = currLine.trim();
+                    // System.out.println(currLine);
+                }
                 // need to parse the text files here
                 // and then use the parsed data to create document objects.
 
                 try {
-                    bf.close();
+                    br.close();
                 } catch (IOException e) {
                     System.out.println(String.format("ERROR: IOException occurred when clsoing file: %s", fileName));
                     System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));

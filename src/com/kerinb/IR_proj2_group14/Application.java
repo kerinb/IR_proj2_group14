@@ -39,7 +39,7 @@ public class Application {
     private static Similarity similarityModel = null;
     private static Analyzer analyzer = null;
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         System.out.println(String.format("ranking model: %s\t analyzer:%s", args[0], args[1]));
         if (args.length == 2 && validRankModel(args[0]) && validAnalyzer(args[1])) {
 
@@ -72,7 +72,7 @@ public class Application {
         }
     }
 
-    private static void loadDocsFromDirTree() {
+    private static void loadDocsFromDirTree() throws IOException {
         // Financial Times
         List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
         List<Document> loadedDocs = loadFinTimesDocs(finTimesFiles);
