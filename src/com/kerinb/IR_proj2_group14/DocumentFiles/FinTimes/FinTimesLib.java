@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -21,19 +22,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FinTimesLib {
-    private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
-    private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
-    private final static String[] finTimesIgnore = {"readfrcg", "readmeft"};
-
-    public static List<Document> loadFinTimesDocs() {
+    public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) {
         FinTimesObject finTimesObject = new FinTimesObject();
         System.out.println("loading in fin Times data");
         String idTag = FinTimesTags.DOC_START.getTag();
         String tempTag = FinTimesTags.DOC_START.getTag();
-
-        System.out.println(Arrays.toString(finTimesIgnore));
-        File[] directories = new File(absPathToFinTimes).listFiles(File::isDirectory);
-        System.out.println(Arrays.toString(directories));
 
 //        Document document;
 //        List<Document> documentList = new ArrayList<>();

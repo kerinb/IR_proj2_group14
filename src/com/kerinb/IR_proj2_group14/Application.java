@@ -16,6 +16,7 @@ import org.apache.lucene.store.Directory;
 // import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.QueryFiles.QueryLibrary.callLoadQueriesFromFile;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
@@ -32,8 +34,7 @@ public class Application {
 
     private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
     private final static String absPathToSearchResults = String.format("%s/cran/cranQueryResults", currentRelativePath);
-    // private final static String absPathToIndex = String.format("%s/index", currentRelativePath);
-    private static final int MAX_RETURN_RESULTS = 1000;
+    private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);    private static final int MAX_RETURN_RESULTS = 1000;
     private static final String ITER_NUM = " 0 ";
     private static Similarity similarityModel = null;
     private static Analyzer analyzer = null;
@@ -45,11 +46,10 @@ public class Application {
             similarityModel = callSetRankingModel(args[0]);
             analyzer =  callSetAnalyzer(args[1]);
             Directory directory = new RAMDirectory();
-            // Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
 
-            // load in the documents
-            List<Document> loadedDocs = loadFinTimesDocs();
-            System.out.println("loaded in Cranfield Documents");
+            loadDocsFromDirTree();
+;
+            System.out.println("loaded Documents");
             // System.out.println(loadedDocs.get(0));
 
             // set up the index
@@ -70,6 +70,13 @@ public class Application {
         } else {
             System.out.println("User must provide a ranking model!\nThis should be added in the run.sh file - restore desired ranking model.");
         }
+    }
+
+    private static void loadDocsFromDirTree() {
+        // Financial Times
+        List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
+        List<Document> loadedDocs = loadFinTimesDocs(finTimesFiles);
+        System.out.println(finTimesFiles);
     }
 
     private static Map<String, Float> createBoostMap() {

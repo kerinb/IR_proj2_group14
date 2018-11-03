@@ -1,11 +1,12 @@
-com/kerinb/IR_proj2_group14/RankAndAnalyzerFiles/RankAndAnalyzers.class
 com/kerinb/IR_proj2_group14/QueryFiles/QueryData.class
 com/kerinb/IR_proj2_group14/DocumentFiles/DocData.class
-com/kerinb/IR_proj2_group14/DocumentFiles/DocumentLibrary.class
 com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesTags.class
 com/kerinb/IR_proj2_group14/DocumentFiles/AvailableDocTags.class
-com/kerinb/IR_proj2_group14/QueryFiles/QueryLibrary.class
 com/kerinb/IR_proj2_group14/RankAndAnalyzerFiles/CustomAnalyzer.class
-com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesLib.class
+com/kerinb/IR_proj2_group14/ApplicationLibrary.class
 com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesObject.class
+com/kerinb/IR_proj2_group14/RankAndAnalyzerFiles/RankAndAnalyzers.class
+com/kerinb/IR_proj2_group14/DocumentFiles/DocumentLibrary.class
+com/kerinb/IR_proj2_group14/QueryFiles/QueryLibrary.class
+com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesLib.class
 com/kerinb/IR_proj2_group14/Application.class
