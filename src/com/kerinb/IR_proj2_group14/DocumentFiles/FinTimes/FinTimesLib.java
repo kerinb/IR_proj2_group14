@@ -10,10 +10,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,43 +20,27 @@ import java.util.List;
 
 public class FinTimesLib {
     public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) {
-        FinTimesObject finTimesObject = new FinTimesObject();
-        System.out.println("loading in fin Times data");
-        String idTag = FinTimesTags.DOC_START.getTag();
-        String tempTag = FinTimesTags.DOC_START.getTag();
+        for(String fileName : finTimesFiles){
+            System.out.println(fileName);
 
-//        Document document;
-//        List<Document> documentList = new ArrayList<>();
-//        int counter = 0;
-//
-//        try {
-//            BufferedReader bf = new BufferedReader(new FileReader(absPathToCranfieldDocFile));
-//            String docLine;
-//
-//            while ((docLine = bf.readLine()) != null) {
-//                String docLineTag = checkIfDocLineHasTag(docLine);
-//
-//                // If still docs to index - create new document object
-//                if (docLineTag != null && docLineTag.equals(idTag) && counter !=0) { // if docLineTag isnt null and if it hasnt changed
-//                    tempTag = docLineTag;
-//                    document = createNewDoc(finTimesObject);
-//                    documentList.add(document);
-//                    finTimesObject = new FinTimesObject();
-//                } else if (docLineTag != null && !docLineTag.equals(idTag)) { // otherwise, update the tag
-//                    tempTag = docLineTag;
-//                    counter++;
-//                }
-//
-//                populateDocumentFields(tempTag, docLine, finTimesObject);
-//            }
-//            document = createNewDoc(finTimesObject);
-//            documentList.add(document);
-//            bf.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return documentList;
+            try {
+                BufferedReader bf = new BufferedReader(new FileReader(fileName));
+
+                // need to parse the text files here
+                // and then use the parsed data to create document objects.
+
+                try {
+                    bf.close();
+                } catch (IOException e) {
+                    System.out.println(String.format("ERROR: IOException occurred when clsoing file: %s", fileName));
+                    System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println(String.format("ERROR: FileNotFoundExcpeiton occurred when trying to read file: %s", fileName));
+                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+            }
+        }
+
         return null;
     }
 

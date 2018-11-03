@@ -76,7 +76,6 @@ public class Application {
         // Financial Times
         List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
         List<Document> loadedDocs = loadFinTimesDocs(finTimesFiles);
-        System.out.println(finTimesFiles);
     }
 
     private static Map<String, Float> createBoostMap() {
