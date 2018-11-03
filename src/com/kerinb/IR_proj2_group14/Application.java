@@ -24,8 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.kerinb.IR_proj2_group14.DocumentFiles.DocumentLibrary.callIndexDocuments;
-import static com.kerinb.IR_proj2_group14.DocumentFiles.DocumentLibrary.callLoadDocumentsFromFile;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.QueryFiles.QueryLibrary.callLoadQueriesFromFile;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
 
@@ -49,15 +48,16 @@ public class Application {
             // Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
 
             // load in the documents
-            List<Document> loadedDocs = callLoadDocumentsFromFile();
+            List<Document> loadedDocs = loadFinTimesDocs();
             System.out.println("loaded in Cranfield Documents");
+            // System.out.println(loadedDocs.get(0));
 
             // set up the index
-            callIndexDocuments(loadedDocs, similarityModel, analyzer, directory);
-            System.out.println(String.format("indexed document list provided with: %s", args[0]));
-
-            executeQueries(directory);
-            System.out.println("Completed queries");
+//            callIndexDocuments(loadedDocs, similarityModel, analyzer, directory);
+//            System.out.println(String.format("indexed document list provided with: %s", args[0]));
+//
+//            executeQueries(directory);
+//            System.out.println("Completed queries");
 
             analyzer.close();
 
