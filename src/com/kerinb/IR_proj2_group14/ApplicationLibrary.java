@@ -7,10 +7,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-// This will be used to store some excess functions used in the application class
-public class ApplicationLibrary {
+class ApplicationLibrary {
 
-    public static List<String> getFileNamesFromDirTree(String rootDir){
+    static List<String> getFileNamesFromDirTree(String rootDir){
         List<String> files = new ArrayList<>();
         try {
             Files.walk(Paths.get(rootDir)).forEach(path ->{

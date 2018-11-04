@@ -1,27 +1,32 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes;
 
-public class FinTimesObject {
+class FinTimesObject {
     private String docNo;
+    private String docId;
     private String headline;
     private String byLine;
     private String text;
 
-    public FinTimesObject(){
+    FinTimesObject(){
         this.docNo = "";
+        this.docId = "";
         this.headline = "";
         this.byLine = "";
         this.text = "";
     }
 
-    public String getDocNo() { return docNo; }
-    public void setDocNo(String docNo) { this.docNo = docNo; }
+    String getDocNo() { return docNo; }
+    void setDocNo(String docNo) { this.docNo = docNo; }
 
-    public String getHeadline() { return headline; }
-    public void setHeadline(String headline) { this.headline = headline; }
+    String getDocId() { return docId; }
+    void setDocId(String docId) { this.docId = docId; }
 
-    public String getByLine() { return docNo; }
-    public void setByLine(String byLine) { this.byLine = byLine; }
+    String getHeadline() { return headline; }
+    void setHeadline(String headline) { this.headline = headline; }
 
-    public String getText() { return headline; }
-    public void setText(String text) { this.text = text; }
+    String getByLine() { return byLine; }
+    void setByLine(String byLine) { this.byLine = byLine; }
+
+    String getText() { return text; }
+    void setText(String text) { this.text = text; }
 }

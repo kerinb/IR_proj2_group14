@@ -1,38 +1,69 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.store.Directory;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class FinTimesLib {
     public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) throws IOException {
-        for(String fileName : finTimesFiles){
-            System.out.println(fileName);
+        FinTimesObject finTimesObject = new FinTimesObject();
+        Document finTimesDoc;
+        boolean headlineFlag = false, textFlag = false, byLineFlag = false;
 
+        List<Document> finTimesDocList = new ArrayList<>();
+        for(String fileName : finTimesFiles){
             try {
                 BufferedReader br = new BufferedReader(new FileReader(fileName));
                 String currLine;
 
                 while((currLine = br.readLine()) != null){
                     currLine = currLine.trim();
-                    // System.out.println(currLine);
+
+                    if(currLine.contains(FinTimesTags.DOC_END.getTag())){
+                        finTimesDoc = createNewFinTimesDoc(finTimesObject);
+                        finTimesDocList.add(finTimesDoc);
+                        finTimesObject = new FinTimesObject();
+                    } else if (currLine.contains(FinTimesTags.DOC_NO_START.getTag())){
+                        finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docNo"));
+                    } else if (currLine.equals(FinTimesTags.HEADLINE_START.getTag())){
+                        headlineFlag = true;
+                    } else if(currLine.contains(FinTimesTags.HEADLINE_END.getTag())){
+                        headlineFlag = false;
+                    } else if (currLine.contains(FinTimesTags.BYLINE_START.getTag())){
+                        byLineFlag = true;
+                    } else if (currLine.contains(FinTimesTags.BYLINE_END.getTag())){
+                        byLineFlag = false;
+                    } else if (currLine.contains(FinTimesTags.TEXT_START.getTag())){
+                        textFlag = true;
+                    } else if (currLine.contains(FinTimesTags.TEXT_END.getTag())){
+                        textFlag = false;
+                    } else if (currLine.contains(FinTimesTags.DOC_ID_START.getTag())){
+                        finTimesObject.setDocId(parseFinTimesDoc(currLine, "docId"));
+                    }
+
+                    if(headlineFlag){
+                        finTimesObject.setHeadline(finTimesObject.getHeadline() + " " + parseFinTimesDoc(currLine,
+                                "headLine"));
+                    } else if(textFlag){
+                        finTimesObject.setText(finTimesObject.getText() + " " + parseFinTimesDoc(currLine,
+                                "text"));
+                    } else if(byLineFlag){
+                        finTimesObject.setByLine(finTimesObject.getByLine() + " " + parseFinTimesDoc(currLine,
+                                "byLine"));
+                    }
                 }
-                // need to parse the text files here
-                // and then use the parsed data to create document objects.
+
+                finTimesDoc = createNewFinTimesDoc(finTimesObject);
+                finTimesDocList.add(finTimesDoc);
+                finTimesObject = new FinTimesObject();
 
                 try {
                     br.close();
@@ -41,84 +72,49 @@ public class FinTimesLib {
                     System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
                 }
             } catch (FileNotFoundException e) {
-                System.out.println(String.format("ERROR: FileNotFoundExcpeiton occurred when trying to read file: %s", fileName));
+                System.out.println(String.format("ERROR: FileNotFoundExcpeiton occurred when trying to read file: %s",
+                        fileName));
                 System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
             }
         }
 
-        return null;
+        return finTimesDocList;
     }
 
-
-    private static IndexWriterConfig setIndexWriterConfig(Similarity similarity, Analyzer analyzer){
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-        return  indexWriterConfig.setSimilarity(similarity).setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-    }
-
-    public static void indexDocuments(List<Document> loadedDocs, Similarity similarity, Analyzer analyzer, Directory directory) {
-        IndexWriter indexWriter;
-        IndexWriterConfig indexWriterConfig = setIndexWriterConfig(similarity, analyzer);
-
-        try {
-            indexWriter = new IndexWriter(directory, indexWriterConfig);
-
-            try {
-                indexWriter.addDocuments(loadedDocs);
-            } catch (Exception e) {
-                System.out.println("ERROR: an error occurred when adding a new document to the index!");
-                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-            }
-
-            try {
-                indexWriter.close();
-            } catch (Exception e) {
-                System.out.println("ERROR: An error occurred when trying to close the indexWrite");
-                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-            }
-
-        } catch (IOException e) {
-            System.out.println("ERROR: An error occurred when trying to instantiate a new IndexWriter");
-            System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+    private static String parseFinTimesDoc(String currLine, String textField){
+        switch (textField){
+            case "docId":
+                return currLine.replaceAll(FinTimesTags.TEXT_START.getTag(), "").replaceAll(
+                        FinTimesTags.TEXT_END.getTag(), "");
+            case "text":
+                return currLine.replaceAll(FinTimesTags.TEXT_START.getTag(), "").replaceAll(
+                        FinTimesTags.TEXT_END.getTag(), "");
+            case "byLine":
+                return currLine.replaceAll(FinTimesTags.BYLINE_START.getTag(), "").replaceAll(
+                        FinTimesTags.BYLINE_END.getTag(), "");
+            case "headLine":
+                return currLine.replaceAll(FinTimesTags.HEADLINE_START.getTag(), "").replaceAll(
+                        FinTimesTags.HEADLINE_END.getTag(), "");
+            case "docNo":
+                return currLine.replaceAll(FinTimesTags.DOC_NO_START.getTag(), "").replaceAll(
+                        FinTimesTags.DOC_NO_END.getTag(), "");
+            default:
+                return null;
         }
     }
 
-    private static Document createNewDoc(FinTimesObject finTimesObject) {
-//        Document document = new Document();
-//
-//        // Strings are a single unit not to be separated/analysed.
-//        document.add(new StringField("id", finTimesObject.getDocId(), Field.Store.YES));
-//        document.add(new StringField("author", finTimesObject.getDocAuthors(), Field.Store.YES));
-//        document.add(new StringField("bibliography", finTimesObject.getDocBibliography(), Field.Store.YES));
-//
-//        // Text is content and is to be separated/analysed
-//        document.add(new TextField("title", finTimesObject.getDocTitle(), Field.Store.YES));
-//        document.add(new TextField("content", finTimesObject.getDocContent(), Field.Store.YES));
-//
-//        return document;
-        return null;
-    }
+    private static Document createNewFinTimesDoc(FinTimesObject finTimesObject) {
+        Document document = new Document();
 
-    private static void populateDocumentFields(String docLineTag, String docLine, FinTimesObject finTimesObject) {
-//        if (docLineTag.equals(FinTimesTags.ID.getTag())) {
-//            finTimesObject.setDocId(docLine.replace(".I", ""));
-//        } else if (docLineTag.equals(FinTimesTags.TITLE.getTag()) && !docLine.contains(FinTimesTags.TITLE.getTag())) {
-//            finTimesObject.setDocTitle(finTimesObject.getDocTitle() + " " + docLine);
-//        } else if (docLineTag.equals(FinTimesTags.AUTHORS.getTag()) && !docLine.contains(FinTimesTags.AUTHORS.getTag())) {
-//            finTimesObject.setDocAuthors(finTimesObject.getDocAuthors() + " " + docLine);
-//        } else if (docLineTag.equals(FinTimesTags.BIBLIOG.getTag()) && !docLine.contains(FinTimesTags.BIBLIOG.getTag())) {
-//            finTimesObject.setDocBibliography(finTimesObject.getDocBibliography() + " " + docLine);
-//        } else if (docLineTag.equals(FinTimesTags.TEXT_BODY.getTag()) && !docLine.contains(FinTimesTags.TEXT_BODY.getTag())) {
-//            finTimesObject.setDocContent(finTimesObject.getDocContent() + " " + docLine);
-//        }
-    }
+        // Strings are a single unit not to be separated/analysed.
+        document.add(new StringField("id", finTimesObject.getDocId(), Field.Store.YES));
+        document.add(new StringField("byLine", finTimesObject.getByLine(), Field.Store.YES));
+        document.add(new StringField("docNo", finTimesObject.getDocNo(), Field.Store.YES));
 
-    public static String checkIfDocLineHasTag(String docLine) {
-        for (FinTimesTags tag : FinTimesTags.values()) {
-            if (docLine.contains(tag.getTag())) {
-                return tag.getTag();
-            }
-        }
-        return null;
-    }
+        // Text is content and is to be separated/analysed
+        document.add(new TextField("headline", finTimesObject.getHeadline(), Field.Store.YES));
+        document.add(new TextField("text", finTimesObject.getText(), Field.Store.YES));
 
+        return document;
+    }
 }

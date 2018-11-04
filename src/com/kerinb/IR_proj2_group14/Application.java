@@ -5,22 +5,24 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.similarities.*;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 // import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +36,17 @@ public class Application {
 
     private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
     private final static String absPathToSearchResults = String.format("%s/cran/cranQueryResults", currentRelativePath);
-    private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);    private static final int MAX_RETURN_RESULTS = 1000;
+    private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
+    private final static String absPathToQueries = String.format("%s/DataSet/topics.401-450", currentRelativePath);
+
+    private static final int MAX_RETURN_RESULTS = 1000;
     private static final String ITER_NUM = " 0 ";
+
     private static Similarity similarityModel = null;
     private static Analyzer analyzer = null;
+
+    private static List<Document> finTimesDocs = new ArrayList<>();
+    // @TODO - other List<Document> can be added here for the other document collections.
 
     public static void main(String[] args) throws ParseException, IOException {
         System.out.println(String.format("ranking model: %s\t analyzer:%s", args[0], args[1]));
@@ -47,17 +56,15 @@ public class Application {
             analyzer =  callSetAnalyzer(args[1]);
             Directory directory = new RAMDirectory();
 
-            loadDocsFromDirTree();
-;
-            System.out.println("loaded Documents");
-            // System.out.println(loadedDocs.get(0));
+            loadDocs();
 
-            // set up the index
-//            callIndexDocuments(loadedDocs, similarityModel, analyzer, directory);
-//            System.out.println(String.format("indexed document list provided with: %s", args[0]));
-//
+            System.out.println("loaded all document collections");
+
+            indexDocuments(similarityModel, analyzer, directory);
+            System.out.println(String.format("indexed document list provided with: %s", args[0]));
+
 //            executeQueries(directory);
-//            System.out.println("Completed queries");
+            System.out.println("Completed queries");
 
             analyzer.close();
 
@@ -72,10 +79,49 @@ public class Application {
         }
     }
 
-    private static void loadDocsFromDirTree() throws IOException {
+    private static IndexWriterConfig setIndexWriterConfig(Similarity similarity, Analyzer analyzer){
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+        return  indexWriterConfig.setSimilarity(similarity).setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+    }
+
+    private static void indexDocuments(Similarity similarity, Analyzer analyzer, Directory directory) {
+        IndexWriter indexWriter;
+        IndexWriterConfig indexWriterConfig = setIndexWriterConfig(similarity, analyzer);
+
+        try {
+            indexWriter = new IndexWriter(directory, indexWriterConfig);
+
+            try {
+                System.out.println("indexing financial times document collection");
+                indexWriter.addDocuments(finTimesDocs);
+                System.out.println("indexed the financial times document collection");
+                // @TODO - Add your document collections to the index here
+            } catch (Exception e) {
+                System.out.println("ERROR: an error occurred when adding a new document to the index!");
+                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+            }
+
+            try {
+                indexWriter.close();
+            } catch (Exception e) {
+                System.out.println("ERROR: An error occurred when trying to close the indexWrite");
+                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+            }
+
+        } catch (IOException e) {
+            System.out.println("ERROR: An error occurred when trying to instantiate a new IndexWriter");
+            System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+        }
+    }
+
+    private static void loadDocs() throws IOException {
         // Financial Times
+        System.out.println("loading financial times documents");
         List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
-        List<Document> loadedDocs = loadFinTimesDocs(finTimesFiles);
+        finTimesDocs = loadFinTimesDocs(finTimesFiles);
+        System.out.println("loaded financial times documents");
+
+        // @TODO - other document collections can be added here
     }
 
     private static Map<String, Float> createBoostMap() {

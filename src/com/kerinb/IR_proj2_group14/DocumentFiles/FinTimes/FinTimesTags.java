@@ -17,12 +17,4 @@ public enum FinTimesTags {
     public String getTag() {
         return this.tag;
     }
-
-    public List<String> getListOFAvailableDocTags() {
-        String[] allAvailableDocTags = {String.valueOf(TEXT_START), String.valueOf(TEXT_END), String.valueOf(
-                HEADLINE_START), String.valueOf(HEADLINE_END), String.valueOf(BYLINE_START), String.valueOf(BYLINE_END),
-                String.valueOf(DOC_NO_START), String.valueOf(DOC_NO_END), String.valueOf(DOC_ID_START), String.valueOf(
-                        DOC_ID_END), String.valueOf(DOC_START), String.valueOf(DOC_END)};
-        return Arrays.asList(allAvailableDocTags);
-    }
 }
