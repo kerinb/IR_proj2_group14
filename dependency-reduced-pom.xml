@@ -71,14 +71,19 @@
       </plugin>
     </plugins>
   </build>
-    <dependencies>
-        <dependency>
-            <groupId>IR_Document_Analysis</groupId>
-            <artifactId>IR_Document_Analysis</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-    <properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>7.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>IR_Document_Analysis</groupId>
+      <artifactId>IR_Document_Analysis</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  <properties>
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
