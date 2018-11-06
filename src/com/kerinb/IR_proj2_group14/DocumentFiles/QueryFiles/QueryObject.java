@@ -1,6 +1,7 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles;
 
 public class QueryObject {
+
     private String queryNum;
     private String queryId;
     private String title;

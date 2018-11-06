@@ -13,57 +13,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FinTimesLib {
+
+    private static List<Document> finTimesDocList = new ArrayList<>();
+    private static boolean headlineFlag = false, textFlag = false, byLineFlag = false;
+
     public static List<Document> loadFinTimesDocs(List<String> finTimesFiles) throws IOException {
         FinTimesObject finTimesObject = new FinTimesObject();
-        Document finTimesDoc;
-        boolean headlineFlag = false, textFlag = false, byLineFlag = false;
 
-        List<Document> finTimesDocList = new ArrayList<>();
         for(String fileName : finTimesFiles){
+
             try {
                 BufferedReader br = new BufferedReader(new FileReader(fileName));
                 String currLine;
 
                 while((currLine = br.readLine()) != null){
                     currLine = currLine.trim();
-
-                    if(currLine.contains(FinTimesTags.DOC_END.getTag())){
-                        finTimesDoc = createNewFinTimesDoc(finTimesObject);
-                        finTimesDocList.add(finTimesDoc);
-                        finTimesObject = new FinTimesObject();
-                    } else if (currLine.contains(FinTimesTags.DOC_NO_START.getTag())){
-                        finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docNo"));
-                    } else if (currLine.equals(FinTimesTags.HEADLINE_START.getTag())){
-                        headlineFlag = true;
-                    } else if(currLine.contains(FinTimesTags.HEADLINE_END.getTag())){
-                        headlineFlag = false;
-                    } else if (currLine.contains(FinTimesTags.BYLINE_START.getTag())){
-                        byLineFlag = true;
-                    } else if (currLine.contains(FinTimesTags.BYLINE_END.getTag())){
-                        byLineFlag = false;
-                    } else if (currLine.contains(FinTimesTags.TEXT_START.getTag())){
-                        textFlag = true;
-                    } else if (currLine.contains(FinTimesTags.TEXT_END.getTag())){
-                        textFlag = false;
-                    } else if (currLine.contains(FinTimesTags.DOC_ID_START.getTag())){
-                        finTimesObject.setDocId(parseFinTimesDoc(currLine, "docId"));
-                    }
-
-                    if(headlineFlag){
-                        finTimesObject.setHeadline(finTimesObject.getHeadline() + " " + parseFinTimesDoc(currLine,
-                                "headLine"));
-                    } else if(textFlag){
-                        finTimesObject.setText(finTimesObject.getText() + " " + parseFinTimesDoc(currLine,
-                                "text"));
-                    } else if(byLineFlag){
-                        finTimesObject.setByLine(finTimesObject.getByLine() + " " + parseFinTimesDoc(currLine,
-                                "byLine"));
-                    }
+                    finTimesObject = setFinTimesObjData(currLine, finTimesObject);
                 }
-
-                finTimesDoc = createNewFinTimesDoc(finTimesObject);
-                finTimesDocList.add(finTimesDoc);
-                finTimesObject = new FinTimesObject();
+                finTimesObject = addCreateFinTimesObject(finTimesObject);
 
                 try {
                     br.close();
@@ -71,6 +38,7 @@ public class FinTimesLib {
                     System.out.println(String.format("ERROR: IOException occurred when clsoing file: %s", fileName));
                     System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
                 }
+
             } catch (FileNotFoundException e) {
                 System.out.println(String.format("ERROR: FileNotFoundExcpeiton occurred when trying to read file: %s",
                         fileName));
@@ -79,6 +47,46 @@ public class FinTimesLib {
         }
 
         return finTimesDocList;
+    }
+
+    private static FinTimesObject setFinTimesObjData(String currLine, FinTimesObject finTimesObject){
+        if(currLine.contains(FinTimesTags.DOC_END.getTag())){
+            finTimesObject = addCreateFinTimesObject(finTimesObject);
+        } else if (currLine.contains(FinTimesTags.DOC_NO_START.getTag())){
+            finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docNo"));
+        } else if (currLine.equals(FinTimesTags.HEADLINE_START.getTag())){
+            headlineFlag = true;
+        } else if(currLine.contains(FinTimesTags.HEADLINE_END.getTag())){
+            headlineFlag = false;
+        } else if (currLine.contains(FinTimesTags.BYLINE_START.getTag())){
+            byLineFlag = true;
+        } else if (currLine.contains(FinTimesTags.BYLINE_END.getTag())){
+            byLineFlag = false;
+        } else if (currLine.contains(FinTimesTags.TEXT_START.getTag())){
+            textFlag = true;
+        } else if (currLine.contains(FinTimesTags.TEXT_END.getTag())){
+            textFlag = false;
+        } else if (currLine.contains(FinTimesTags.DOC_ID_START.getTag())){
+            finTimesObject.setDocId(parseFinTimesDoc(currLine, "docId"));
+        }
+
+        if(headlineFlag){
+            finTimesObject.setHeadline(finTimesObject.getHeadline() + " " + parseFinTimesDoc(currLine,
+                    "headLine"));
+        } else if(textFlag){
+            finTimesObject.setText(finTimesObject.getText() + " " + parseFinTimesDoc(currLine,
+                    "text"));
+        } else if(byLineFlag){
+            finTimesObject.setByLine(finTimesObject.getByLine() + " " + parseFinTimesDoc(currLine,
+                    "byLine"));
+        }
+        return finTimesObject;
+    }
+
+    private static FinTimesObject addCreateFinTimesObject(FinTimesObject finTimesObject){
+        Document finTimesDoc = createNewFinTimesDoc(finTimesObject);
+        finTimesDocList.add(finTimesDoc);
+        return new FinTimesObject();
     }
 
     private static String parseFinTimesDoc(String currLine, String textField){

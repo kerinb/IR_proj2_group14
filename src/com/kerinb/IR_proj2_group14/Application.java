@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
+import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
@@ -48,7 +48,7 @@ public class Application {
     // @TODO - other List<Document> can be added here for the other document collections.
 
     public static void main(String[] args) throws ParseException, IOException {
-        System.out.println(String.format("ranking model: %s\t analyzer:%s", args[0], args[1]));
+        System.out.println(String.format("Ranking model: %s\t Analyzer:%s", args[0], args[1]));
         if (args.length == 2 && validRankModel(args[0]) && validAnalyzer(args[1])) {
 
             similarityModel = callSetRankingModel(args[0]);
@@ -56,31 +56,16 @@ public class Application {
             Directory directory = new RAMDirectory();
 
             loadDocs();
-
-            System.out.println("loaded all document collections");
-
             indexDocuments(similarityModel, analyzer, directory);
-            System.out.println(String.format("indexed document list provided with: %s", args[0]));
-
             executeQueries(directory);
-            System.out.println("Completed queries");
 
             analyzer.close();
 
-            try {
-                directory.close();
-            } catch (IOException e) {
-                System.out.println("ERROR: an error occurred when closing the directory!");
-                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-            }
+            closeDirectory(directory);
         } else {
-            System.out.println("User must provide a ranking model!\nThis should be added in the run.sh file - restore desired ranking model.");
+            System.out.println("User must provide a correct ranking model or analyser!");
+            System.out.println("This should be added in the run.sh file - restore desired ranking model.");
         }
-    }
-
-    private static IndexWriterConfig setIndexWriterConfig(Similarity similarity, Analyzer analyzer){
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-        return  indexWriterConfig.setSimilarity(similarity).setOpenMode(IndexWriterConfig.OpenMode.CREATE);
     }
 
     private static void indexDocuments(Similarity similarity, Analyzer analyzer, Directory directory) {
@@ -90,22 +75,12 @@ public class Application {
         try {
             indexWriter = new IndexWriter(directory, indexWriterConfig);
 
-            try {
-                System.out.println("indexing financial times document collection");
-                indexWriter.addDocuments(finTimesDocs);
-                System.out.println("indexed the financial times document collection");
-                // @TODO - Add your document collections to the index here
-            } catch (Exception e) {
-                System.out.println("ERROR: an error occurred when adding a new document to the index!");
-                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-            }
+            System.out.println("indexing financial times document collection");
+            indexWriter.addDocuments(finTimesDocs);
 
-            try {
-                indexWriter.close();
-            } catch (Exception e) {
-                System.out.println("ERROR: An error occurred when trying to close the indexWrite");
-                System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-            }
+            // @TODO - Add your document collections to the index here
+
+            closeIndexWriter(indexWriter);
 
         } catch (IOException e) {
             System.out.println("ERROR: An error occurred when trying to instantiate a new IndexWriter");
@@ -114,32 +89,18 @@ public class Application {
     }
 
     private static void loadDocs() throws IOException {
-        // Financial Times
         System.out.println("loading financial times documents");
         List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
         finTimesDocs = loadFinTimesDocs(finTimesFiles);
         System.out.println("loaded financial times documents");
 
-        // @TODO - other document collections can be added here
-    }
-
-    private static Map<String, Float> createBoostMap() {
-        Map<String, Float> boost = new HashMap<>();
-        boost.put("headline", (float) 0.2);
-        boost.put("text", (float) 0.8);
-        return boost;
-    }
-
-    private static IndexSearcher createIndexSearcher(IndexReader indexReader){
-        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-        indexSearcher.setSimilarity(similarityModel);
-        return indexSearcher;
+        // @TODO - Other document collections can be added here
     }
 
     private static void executeQueries(Directory directory) throws ParseException {
         try {
             IndexReader indexReader = DirectoryReader.open(directory);
-            IndexSearcher indexSearcher = createIndexSearcher(indexReader);
+            IndexSearcher indexSearcher = createIndexSearcher(indexReader, similarityModel);
 
             Map<String, Float> boost = createBoostMap();
             QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
@@ -165,11 +126,12 @@ public class Application {
                     }
                 }
             }
-            writer.flush();
-            writer.close();
-            indexReader.close();
+
+            closeIndexReader(indexReader);
+            closePrintWriter(writer);
+
         } catch (IOException e) {
-            System.out.println("ERROR: an error occurred when reading the index from the diretory!");
+            System.out.println("ERROR: an error occurred when instantiating the printWriter!");
             System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
         }
     }

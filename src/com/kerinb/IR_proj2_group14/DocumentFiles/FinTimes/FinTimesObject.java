@@ -1,6 +1,7 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes;
 
 class FinTimesObject {
+
     private String docNo;
     private String docId;
     private String headline;
