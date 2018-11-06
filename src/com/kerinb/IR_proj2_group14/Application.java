@@ -69,7 +69,7 @@ public class Application {
             }
         } else {
             System.out.println("User must provide a ranking model!\nThis should be added in the run.sh file - restore desired ranking model.");
-        }
+        }git
     }
 
     private static Map<String, Float> createBoostMap() {
