@@ -34,10 +34,14 @@
     <orderEntry type="library" name="Maven: org.sonatype.aether:aether-spi:1.7" level="project" />
     <orderEntry type="library" name="Maven: org.sonatype.aether:aether-util:1.7" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.5" level="project" />
+    <orderEntry type="library" name="Maven: IR_Document_Analysis:IR_Document_Analysis:0.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.apache.lucene:lucene-analyzers-morfologik:7.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-analyzers-common:7.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-core:7.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.carrot2:morfologik-fsa:2.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.carrot2:morfologik-polish:2.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.carrot2:morfologik-stemming:2.1.1" level="project" />
     <orderEntry type="library" name="Maven: ua.net.nlp:morfologik-ukrainian-search:3.9.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-misc:7.2.1" level="project" />
   </component>
 </module>
