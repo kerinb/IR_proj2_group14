@@ -1,6 +1,6 @@
 package com.kerinb.IR_proj2_group14;
 
-import com.kerinb.IR_proj2_group14.QueryFiles.QueryData;
+import com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryObject;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -29,15 +29,14 @@ import java.util.Map;
 
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
-import static com.kerinb.IR_proj2_group14.QueryFiles.QueryLibrary.callLoadQueriesFromFile;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
 
 public class Application {
 
     private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
-    private final static String absPathToSearchResults = String.format("%s/cran/cranQueryResults", currentRelativePath);
+    private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
     private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
-    private final static String absPathToQueries = String.format("%s/DataSet/topics.401-450", currentRelativePath);
 
     private static final int MAX_RETURN_RESULTS = 1000;
     private static final String ITER_NUM = " 0 ";
@@ -63,7 +62,7 @@ public class Application {
             indexDocuments(similarityModel, analyzer, directory);
             System.out.println(String.format("indexed document list provided with: %s", args[0]));
 
-//            executeQueries(directory);
+            executeQueries(directory);
             System.out.println("Completed queries");
 
             analyzer.close();
@@ -126,11 +125,8 @@ public class Application {
 
     private static Map<String, Float> createBoostMap() {
         Map<String, Float> boost = new HashMap<>();
-        boost.put("id", (float) 0);
-        boost.put("author", (float) 0);
-        boost.put("bibliography", (float) 0);
-        boost.put("title", (float) 0.2);
-        boost.put("content", (float) 0.8);
+        boost.put("headline", (float) 0.2);
+        boost.put("text", (float) 0.8);
         return boost;
     }
 
@@ -146,15 +142,16 @@ public class Application {
             IndexSearcher indexSearcher = createIndexSearcher(indexReader);
 
             Map<String, Float> boost = createBoostMap();
-            QueryParser queryParser = new MultiFieldQueryParser(new String[]{"title", "content", "id", "author", "bibliography"}, analyzer, boost);
+            QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
 
             PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
-            List<QueryData> loadedQueries = callLoadQueriesFromFile();
+            List<QueryObject> loadedQueries = loadQueriesFromFile();
 
             for (int queryNum = 0; queryNum < loadedQueries.size(); queryNum++) {
-                QueryData queryData = loadedQueries.get(queryNum);
-                String queryContent = QueryParser.escape(queryData.getQueryContent());
+                QueryObject queryData = loadedQueries.get(queryNum);
+                String queryContent = QueryParser.escape(queryData.getDescription());
                 queryContent = queryContent.trim();
+
                 Query query;
 
                 if (queryContent.length() > 0) {

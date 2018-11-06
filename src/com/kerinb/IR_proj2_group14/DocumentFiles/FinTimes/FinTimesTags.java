@@ -1,8 +1,5 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes;
 
-import java.util.Arrays;
-import java.util.List;
-
 public enum FinTimesTags {
     TEXT_START("<TEXT>"), TEXT_END("</TEXT>"), HEADLINE_START("<HEADLINE>"), HEADLINE_END("</HEADLINE>"), BYLINE_START(
             "<BYLINE>"), BYLINE_END("</BYLINE>"), DOC_NO_START("<DOCNO>"), DOC_NO_END("</DOCNO>"), DOC_ID_START(
