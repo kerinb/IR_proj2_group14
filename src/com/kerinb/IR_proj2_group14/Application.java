@@ -15,7 +15,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
-// import org.apache.lucene.store.FSDirectory;
+//import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import java.io.IOException;
@@ -67,7 +67,6 @@ public class Application {
             similarityModel = callSetRankingModel(args[0]);
             analyzer =  callSetAnalyzer(args[1]);
             Directory directory = new RAMDirectory();
-
             loadDocs();
             indexDocuments(similarityModel, analyzer, directory);
             executeQueries(directory);
@@ -87,9 +86,10 @@ public class Application {
 
         try {
             indexWriter = new IndexWriter(directory, indexWriterConfig);
-
+            indexWriter.deleteAll();
             System.out.println("indexing financial times document collection");
             indexWriter.addDocuments(finTimesDocs);
+            System.out.println("indexing federal register document collection");
             indexWriter.addDocuments(fedRegisterDocs);
             // @TODO - Add your document collections to the index here
 
@@ -109,7 +109,6 @@ public class Application {
         System.out.println("loading federal register documents");
         fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
         System.out.println("loaded federal register documents");
-
         // @TODO - Other document collections can be added here
     }
 
