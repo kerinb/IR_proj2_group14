@@ -126,8 +126,7 @@ public class Application {
             PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
             List<QueryObject> loadedQueries = loadQueriesFromFile();
 
-            for (int queryNum = 0; queryNum < loadedQueries.size(); queryNum++) {
-                QueryObject queryData = loadedQueries.get(queryNum);
+            for (QueryObject queryData : loadedQueries) {
                 String queryContent = QueryParser.escape(queryData.getDescription());
                 queryContent = queryContent.trim();
 
@@ -140,7 +139,8 @@ public class Application {
 
                     for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
                         ScoreDoc hit = hits[hitIndex];
-                        writer.println(queryNum + ITER_NUM + (hit.doc + 1) + " " + hitIndex + " " + Math.round(hit.score) + ITER_NUM);
+                        writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docNo") +
+                                " " + hitIndex + " " + hit.score + ITER_NUM);
                     }
                 }
             }
