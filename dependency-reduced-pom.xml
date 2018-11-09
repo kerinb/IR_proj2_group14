@@ -71,26 +71,8 @@
       </plugin>
     </plugins>
   </build>
-    <dependencies>
-        <dependency>
-            <groupId>IR_Document_Analysis</groupId>
-            <artifactId>IR_Document_Analysis</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-      <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-analyzers-morfologik</artifactId>
-        <version>7.2.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-misc</artifactId>
-        <version>7.2.1</version>
-      </dependency>
-    </dependencies>
-    <properties>
+  <properties>
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>
-

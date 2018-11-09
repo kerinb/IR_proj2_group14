@@ -15,7 +15,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
-// import org.apache.lucene.store.FSDirectory;
+//import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import java.io.IOException;
@@ -41,11 +41,14 @@ import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validRankModel;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetAnalyzer;
 
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
+
 public class Application {
 
     private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
     private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
     private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
+    private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
 
     private static final int MAX_RETURN_RESULTS = 1000;
     private static final String ITER_NUM = " 0 ";
@@ -54,6 +57,7 @@ public class Application {
     private static Analyzer analyzer = null;
 
     private static List<Document> finTimesDocs = new ArrayList<>();
+    private static List<Document> fedRegisterDocs = new ArrayList<>();
     // @TODO - other List<Document> can be added here for the other document collections.
 
     public static void main(String[] args) throws ParseException, IOException {
@@ -63,7 +67,6 @@ public class Application {
             similarityModel = callSetRankingModel(args[0]);
             analyzer =  callSetAnalyzer(args[1]);
             Directory directory = new RAMDirectory();
-
             loadDocs();
             indexDocuments(similarityModel, analyzer, directory);
             executeQueries(directory);
@@ -83,10 +86,11 @@ public class Application {
 
         try {
             indexWriter = new IndexWriter(directory, indexWriterConfig);
-
+            indexWriter.deleteAll();
             System.out.println("indexing financial times document collection");
             indexWriter.addDocuments(finTimesDocs);
-
+            System.out.println("indexing federal register document collection");
+            indexWriter.addDocuments(fedRegisterDocs);
             // @TODO - Add your document collections to the index here
 
             closeIndexWriter(indexWriter);
@@ -102,7 +106,9 @@ public class Application {
         List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
         finTimesDocs = loadFinTimesDocs(finTimesFiles);
         System.out.println("loaded financial times documents");
-
+        System.out.println("loading federal register documents");
+        fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
+        System.out.println("loaded federal register documents");
         // @TODO - Other document collections can be added here
     }
 
