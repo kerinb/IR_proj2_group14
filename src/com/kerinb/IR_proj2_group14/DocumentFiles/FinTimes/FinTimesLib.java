@@ -53,7 +53,7 @@ public class FinTimesLib {
         if(currLine.contains(FinTimesTags.DOC_END.getTag())){
             finTimesObject = addCreateFinTimesObject(finTimesObject);
         } else if (currLine.contains(FinTimesTags.DOC_NO_START.getTag())){
-            finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docNo"));
+            finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docno"));
         } else if (currLine.equals(FinTimesTags.HEADLINE_START.getTag())){
             headlineFlag = true;
         } else if(currLine.contains(FinTimesTags.HEADLINE_END.getTag())){
@@ -67,18 +67,18 @@ public class FinTimesLib {
         } else if (currLine.contains(FinTimesTags.TEXT_END.getTag())){
             textFlag = false;
         } else if (currLine.contains(FinTimesTags.DOC_ID_START.getTag())){
-            finTimesObject.setDocId(parseFinTimesDoc(currLine, "docId"));
+            finTimesObject.setDocId(parseFinTimesDoc(currLine, "docid"));
         }
 
         if(headlineFlag){
             finTimesObject.setHeadline(finTimesObject.getHeadline() + " " + parseFinTimesDoc(currLine,
-                    "headLine"));
+                    "headline"));
         } else if(textFlag){
             finTimesObject.setText(finTimesObject.getText() + " " + parseFinTimesDoc(currLine,
                     "text"));
         } else if(byLineFlag){
             finTimesObject.setByLine(finTimesObject.getByLine() + " " + parseFinTimesDoc(currLine,
-                    "byLine"));
+                    "byline"));
         }
         return finTimesObject;
     }
@@ -91,19 +91,19 @@ public class FinTimesLib {
 
     private static String parseFinTimesDoc(String currLine, String textField){
         switch (textField){
-            case "docId":
+            case "docid":
                 return currLine.replaceAll(FinTimesTags.TEXT_START.getTag(), "").replaceAll(
                         FinTimesTags.TEXT_END.getTag(), "");
             case "text":
                 return currLine.replaceAll(FinTimesTags.TEXT_START.getTag(), "").replaceAll(
                         FinTimesTags.TEXT_END.getTag(), "");
-            case "byLine":
+            case "byline":
                 return currLine.replaceAll(FinTimesTags.BYLINE_START.getTag(), "").replaceAll(
                         FinTimesTags.BYLINE_END.getTag(), "");
-            case "headLine":
+            case "headline":
                 return currLine.replaceAll(FinTimesTags.HEADLINE_START.getTag(), "").replaceAll(
                         FinTimesTags.HEADLINE_END.getTag(), "");
-            case "docNo":
+            case "docno":
                 return currLine.replaceAll(FinTimesTags.DOC_NO_START.getTag(), "").replaceAll(
                         FinTimesTags.DOC_NO_END.getTag(), "");
             default:
@@ -116,8 +116,8 @@ public class FinTimesLib {
 
         // Strings are a single unit not to be separated/analysed.
         document.add(new StringField("id", finTimesObject.getDocId(), Field.Store.YES));
-        document.add(new StringField("byLine", finTimesObject.getByLine(), Field.Store.YES));
-        document.add(new StringField("docNo", finTimesObject.getDocNo(), Field.Store.YES));
+        document.add(new StringField("byline", finTimesObject.getByLine(), Field.Store.YES));
+        document.add(new StringField("docno", finTimesObject.getDocNo(), Field.Store.YES));
 
         // Text is content and is to be separated/analysed
         document.add(new TextField("headline", finTimesObject.getHeadline(), Field.Store.YES));

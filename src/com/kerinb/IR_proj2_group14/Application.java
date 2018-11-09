@@ -139,7 +139,7 @@ public class Application {
 
                     for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
                         ScoreDoc hit = hits[hitIndex];
-                        writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docNo") +
+                        writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
                                 " " + hitIndex + " " + hit.score + ITER_NUM);
                     }
                 }
