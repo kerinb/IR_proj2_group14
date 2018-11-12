@@ -35,6 +35,7 @@ import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDir
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.setIndexWriterConfig;
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createIndexSearcher;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.LaTimes.LATimesParser.loadLaTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetRankingModel;
 import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validAnalyzer;
@@ -45,113 +46,130 @@ import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegis
 
 public class Application {
 
-    private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
-    private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
-    private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
-    private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
+	private final static Path currentRelativePath = Paths.get("").toAbsolutePath();
+	private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
+	private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
+	private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
+	private final static String absPathToLaTimes = String.format("%s/DataSet/latimes",currentRelativePath);
 
-    private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
-    private static final int MAX_RETURN_RESULTS = 1000;
-    private static final String ITER_NUM = " 0 ";
+	private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
-    private static Similarity similarityModel = null;
-    private static Analyzer analyzer = null;
+	private static final int MAX_RETURN_RESULTS = 1000;
+	private static final String ITER_NUM = " 0 ";
 
-    private static List<Document> finTimesDocs = new ArrayList<>();
-    private static List<Document> fedRegisterDocs = new ArrayList<>();
-    // @TODO - other List<Document> can be added here for the other document collections.
+	private static Similarity similarityModel = null;
+	private static Analyzer analyzer = null;
 
-    public static void main(String[] args) throws ParseException, IOException {
-        System.out.println(String.format("Ranking model: %s\t Analyzer:%s", args[0], args[1]));
-        if (args.length == 2 && validRankModel(args[0]) && validAnalyzer(args[1])) {
+	private static List<Document> finTimesDocs = new ArrayList<>();
+	private static List<Document> fedRegisterDocs = new ArrayList<>();
+	private static List<Document> laTimesDocs = new ArrayList<>();
 
-            similarityModel = callSetRankingModel(args[0]);
-            analyzer =  callSetAnalyzer(args[1]);
-            Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
-            loadDocs();
-            indexDocuments(similarityModel, analyzer, directory);
-            System.out.println("loading and executing queries");
-            executeQueries(directory);
+	// @TODO - other List<Document> can be added here for the other document collections.
 
-            analyzer.close();
+	public static void main(String[] args) throws ParseException, IOException {
+		System.out.println(String.format("Ranking model: %s\t Analyzer:%s", args[0], args[1]));
+		if (args.length == 2 && validRankModel(args[0]) && validAnalyzer(args[1])) {
 
-            closeDirectory(directory);
-        } else {
-            System.out.println("User must provide a correct ranking model or analyser!");
-            System.out.println("This should be added in the run.sh file - restore desired ranking model.");
-        }
-    }
+			similarityModel = callSetRankingModel(args[0]);
+			analyzer =  callSetAnalyzer(args[1]);
+			Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
+			loadDocs();
+			indexDocuments(similarityModel, analyzer, directory);
+			System.out.println("loading and executing queries");
+			executeQueries(directory);
 
-    private static void indexDocuments(Similarity similarity, Analyzer analyzer, Directory directory) {
-        IndexWriter indexWriter;
-        IndexWriterConfig indexWriterConfig = setIndexWriterConfig(similarity, analyzer);
+			analyzer.close();
 
-        try {
-            indexWriter = new IndexWriter(directory, indexWriterConfig);
-            indexWriter.deleteAll();
-            System.out.println("indexing financial times document collection");
-            indexWriter.addDocuments(finTimesDocs);
-            System.out.println("indexing federal register document collection");
-            indexWriter.addDocuments(fedRegisterDocs);
-            // @TODO - Add your document collections to the index here
+			closeDirectory(directory);
+		} else {
+			System.out.println("User must provide a correct ranking model or analyser!");
+			System.out.println("This should be added in the run.sh file - restore desired ranking model.");
+		}
+	}
 
-            closeIndexWriter(indexWriter);
+	private static void indexDocuments(Similarity similarity, Analyzer analyzer, Directory directory) {
+		IndexWriter indexWriter;
+		IndexWriterConfig indexWriterConfig = setIndexWriterConfig(similarity, analyzer);
 
-        } catch (IOException e) {
-            System.out.println("ERROR: An error occurred when trying to instantiate a new IndexWriter");
-            System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-        }
-    }
+		try {
+			indexWriter = new IndexWriter(directory, indexWriterConfig);
+			indexWriter.deleteAll();
 
-    private static void loadDocs() throws IOException {
-        System.out.println("loading financial times documents");
-        List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
-        finTimesDocs = loadFinTimesDocs(finTimesFiles);
-        System.out.println("loaded financial times documents");
-        System.out.println("loading federal register documents");
-        fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
-        System.out.println("loaded federal register documents");
-        // @TODO - Other document collections can be added here
-    }
+			System.out.println("indexing financial times document collection");
+			indexWriter.addDocuments(finTimesDocs);
+			
+			System.out.println("indexing federal register document collection");
+			indexWriter.addDocuments(fedRegisterDocs);
 
-    private static void executeQueries(Directory directory) throws ParseException {
-        try {
-            IndexReader indexReader = DirectoryReader.open(directory);
-            IndexSearcher indexSearcher = createIndexSearcher(indexReader, similarityModel);
+			System.out.println("indexing la times document collection");
+			indexWriter.addDocuments(laTimesDocs);
+			
+			// @TODO - Add your document collections to the index here
 
-            Map<String, Float> boost = createBoostMap();
-            QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
+			closeIndexWriter(indexWriter);
 
-            PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
-            List<QueryObject> loadedQueries = loadQueriesFromFile();
+		} catch (IOException e) {
+			System.out.println("ERROR: An error occurred when trying to instantiate a new IndexWriter");
+			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+		}
+	}
 
-            for (QueryObject queryData : loadedQueries) {
-                String queryContent = QueryParser.escape(queryData.getDescription());
-                queryContent = queryContent.trim();
+	private static void loadDocs() throws IOException {
+		System.out.println("loading financial times documents");
 
-                Query query;
 
-                if (queryContent.length() > 0) {
+		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
+		finTimesDocs = loadFinTimesDocs(finTimesFiles);
+		System.out.println("loaded financial times documents");
 
-                    query = queryParser.parse(queryContent);
-                    ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
+		System.out.println("loading federal register documents");
+		fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
+		System.out.println("loaded federal register documents");
 
-                    for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
-                        ScoreDoc hit = hits[hitIndex];
-                        writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
-                                " " + hitIndex + " " + hit.score + ITER_NUM);
-                    }
-                }
-            }
+		System.out.println("loading la times documents");
+		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
+		System.out.println("loaded la times documents");
+		// @TODO - Other document collections can be added here
+	}
 
-            closeIndexReader(indexReader);
-            closePrintWriter(writer);
+	private static void executeQueries(Directory directory) throws ParseException {
+		try {
+			IndexReader indexReader = DirectoryReader.open(directory);
+			IndexSearcher indexSearcher = createIndexSearcher(indexReader, similarityModel);
 
-        } catch (IOException e) {
-            System.out.println("ERROR: an error occurred when instantiating the printWriter!");
-            System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
-        }
-    }
+			Map<String, Float> boost = createBoostMap();
+			QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
+
+			PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
+			List<QueryObject> loadedQueries = loadQueriesFromFile();
+
+			for (QueryObject queryData : loadedQueries) {
+				String queryContent = QueryParser.escape(queryData.getDescription());
+				queryContent = queryContent.trim();
+
+				Query query;
+
+				if (queryContent.length() > 0) {
+
+					query = queryParser.parse(queryContent);
+					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
+
+					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
+						ScoreDoc hit = hits[hitIndex];
+						writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
+								" " + hitIndex + " " + hit.score + ITER_NUM);
+					}
+				}
+			}
+
+			closeIndexReader(indexReader);
+			closePrintWriter(writer);
+
+		} catch (IOException e) {
+			System.out.println("ERROR: an error occurred when instantiating the printWriter!");
+			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
+		}
+	}
 }
 
