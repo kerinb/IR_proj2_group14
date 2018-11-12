@@ -25,3 +25,6 @@ hs_err_pid*
 # IDE specific files
 .idea/*
 *.iml
+
+# Index
+Index/*

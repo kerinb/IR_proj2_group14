@@ -15,7 +15,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
-//import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import java.io.IOException;
@@ -50,6 +50,8 @@ public class Application {
     private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
     private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
 
+    private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
+
     private static final int MAX_RETURN_RESULTS = 1000;
     private static final String ITER_NUM = " 0 ";
 
@@ -66,9 +68,10 @@ public class Application {
 
             similarityModel = callSetRankingModel(args[0]);
             analyzer =  callSetAnalyzer(args[1]);
-            Directory directory = new RAMDirectory();
+            Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
             loadDocs();
             indexDocuments(similarityModel, analyzer, directory);
+            System.out.println("loading and executing queries");
             executeQueries(directory);
 
             analyzer.close();
@@ -123,8 +126,7 @@ public class Application {
             PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
             List<QueryObject> loadedQueries = loadQueriesFromFile();
 
-            for (int queryNum = 0; queryNum < loadedQueries.size(); queryNum++) {
-                QueryObject queryData = loadedQueries.get(queryNum);
+            for (QueryObject queryData : loadedQueries) {
                 String queryContent = QueryParser.escape(queryData.getDescription());
                 queryContent = queryContent.trim();
 
@@ -137,7 +139,8 @@ public class Application {
 
                     for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
                         ScoreDoc hit = hits[hitIndex];
-                        writer.println(queryNum + ITER_NUM + (hit.doc + 1) + " " + hitIndex + " " + Math.round(hit.score) + ITER_NUM);
+                        writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
+                                " " + hitIndex + " " + hit.score + ITER_NUM);
                     }
                 }
             }
