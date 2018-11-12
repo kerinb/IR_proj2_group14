@@ -25,6 +25,9 @@ hs_err_pid*
 # IDE specific files
 .idea/*
 *.iml
+*.classpath
+*.project
+*.DS_Store
 
 # Index
 Index/*
