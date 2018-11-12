@@ -107,6 +107,8 @@ public class FinTimesLib {
                 return currLine.replaceAll(FinTimesTags.DOC_NO_START.getTag(), "").replaceAll(
                         FinTimesTags.DOC_NO_END.getTag(), "");
             default:
+                System.out.println("invalid Text field supplied!\n");
+                throw new Exception;
                 return null;
         }
     }
