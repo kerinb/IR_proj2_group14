@@ -114,12 +114,9 @@ public class FinTimesLib {
     private static Document createNewFinTimesDoc(FinTimesObject finTimesObject) {
         Document document = new Document();
 
-        // Strings are a single unit not to be separated/analysed.
         document.add(new StringField("id", finTimesObject.getDocId(), Field.Store.YES));
         document.add(new StringField("byline", finTimesObject.getByLine(), Field.Store.YES));
         document.add(new StringField("docno", finTimesObject.getDocNo(), Field.Store.YES));
-
-        // Text is content and is to be separated/analysed
         document.add(new TextField("headline", finTimesObject.getHeadline(), Field.Store.YES));
         document.add(new TextField("text", finTimesObject.getText(), Field.Store.YES));
 

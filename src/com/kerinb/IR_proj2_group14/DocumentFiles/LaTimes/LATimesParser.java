@@ -71,7 +71,7 @@ public class LATimesParser {
 
 
 	private static org.apache.lucene.document.Document createDocument(
-			String docNo, String docId, String date, String headline, String section,String text, String byline) 
+			String docNo, String docId, String date, String headline, String section,String text, String byline)
 	{
 		org.apache.lucene.document.Document document = new org.apache.lucene.document.Document();
 		document.add(new StringField("docNo", docNo, Field.Store.YES));

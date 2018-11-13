@@ -16,7 +16,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,23 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeDirectory;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createBoostMap;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closePrintWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexReader;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.setIndexWriterConfig;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createIndexSearcher;
+import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.LaTimes.LATimesParser.loadLaTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetRankingModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validAnalyzer;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validRankModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetAnalyzer;
-
-import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
+import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
 
 public class Application {
 
@@ -50,7 +39,8 @@ public class Application {
 	private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
 	private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
 	private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
-	private final static String absPathToLaTimes =  String.format("%s/DataSet/latimes",currentRelativePath);
+	private final static String absPathToLaTimes = String.format("%s/DataSet/latimes",currentRelativePath);
+	private final static String absPathToFBIS = String.format("%s/DataSet/fbis",currentRelativePath);
 
 	private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
@@ -63,8 +53,7 @@ public class Application {
 	private static List<Document> finTimesDocs = new ArrayList<>();
 	private static List<Document> fedRegisterDocs = new ArrayList<>();
 	private static List<Document> laTimesDocs = new ArrayList<>();
-
-	// @TODO - other List<Document> can be added here for the other document collections.
+	private static List<Document> fbisDocs = new ArrayList<>();
 
 	public static void main(String[] args) throws ParseException, IOException {
 		System.out.println(String.format("Ranking model: %s\t Analyzer:%s", args[0], args[1]));
@@ -97,7 +86,7 @@ public class Application {
 
 			System.out.println("indexing financial times document collection");
 			indexWriter.addDocuments(finTimesDocs);
-			
+
 			System.out.println("indexing federal register document collection");
 			indexWriter.addDocuments(fedRegisterDocs);
 
@@ -105,8 +94,9 @@ public class Application {
 			indexWriter.addDocuments(laTimesDocs);
 			System.out.println("la times indexed");
 			
-			// @TODO - Add your document collections to the index here
-
+			System.out.println("indexing foreign broadcast information service document collection");
+			indexWriter.addDocuments(fbisDocs);
+			
 			closeIndexWriter(indexWriter);
 
 		} catch (IOException e) {
@@ -129,7 +119,10 @@ public class Application {
 		System.out.println("loading la times documents");
 		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
 		System.out.println("loaded la times documents");
-		// @TODO - Other document collections can be added here
+		
+		System.out.println("loading foreign broadcast information service documents");
+		fbisDocs= loadFBISDocs(absPathToFBIS);
+		System.out.println("loaded foreign broadcast information service documents");
 	}
 
 	private static void executeQueries(Directory directory) throws ParseException {
