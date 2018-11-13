@@ -50,8 +50,7 @@ public class Application {
 	private final static String absPathToSearchResults = String.format("%s/DataSet/queryResults", currentRelativePath);
 	private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
 	private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
-	private final static String absPathToLaTimes = String.format("%s/DataSet/latimes",currentRelativePath);
-
+	private final static String absPathToLaTimes =  String.format("%s/DataSet/latimes",currentRelativePath);
 
 	private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
@@ -104,6 +103,7 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
+			System.out.println("la times indexed");
 			
 			// @TODO - Add your document collections to the index here
 
@@ -116,9 +116,8 @@ public class Application {
 	}
 
 	private static void loadDocs() throws IOException {
+		
 		System.out.println("loading financial times documents");
-
-
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
 		System.out.println("loaded financial times documents");
@@ -165,6 +164,7 @@ public class Application {
 
 			closeIndexReader(indexReader);
 			closePrintWriter(writer);
+			System.out.println("queries executed");
 
 		} catch (IOException e) {
 			System.out.println("ERROR: an error occurred when instantiating the printWriter!");
