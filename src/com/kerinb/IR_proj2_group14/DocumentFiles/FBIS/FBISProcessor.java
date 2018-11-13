@@ -1,12 +1,5 @@
 package com.kerinb.IR_proj2_group14.DocumentFiles.FBIS;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -17,10 +10,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 public class FBISProcessor {
 
 	private static BufferedReader br;
-	private static List<Document> fbisDocList = new ArrayList<Document>();
+	private static List<Document> fbisDocList = new ArrayList<>();
 
 	public static List<Document> loadFBISDocs(String fbisDirectory) throws IOException {
 		Directory dir = FSDirectory.open(Paths.get(fbisDirectory));
@@ -92,13 +92,12 @@ public class FBISProcessor {
 				element.select(tag.toString()).remove();
 			}
 		}
-		
 	}
 
 	private static Document createFBISDocument(FBISData fbisData) {
         Document document = new Document();
 
-        document.add(new StringField("id", fbisData.getDocNum(), Field.Store.YES));
+        document.add(new StringField("docno", fbisData.getDocNum(), Field.Store.YES));
         document.add(new StringField("date", fbisData.getDate(), Field.Store.YES));
         document.add(new TextField("headline", fbisData.getTi(), Field.Store.YES));
         document.add(new TextField("text", fbisData.getText(), Field.Store.YES));

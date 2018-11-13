@@ -20,12 +20,4 @@ public enum FBISTags {
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
-	
-	public static boolean isValidTag(String tag) {
-		for(FBISTags value : FBISTags.values()) {
-			if(tag.equals(value.name())) return true;  
-		}
-		return false; 
-	}
-	
 }

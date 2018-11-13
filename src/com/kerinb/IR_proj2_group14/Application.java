@@ -25,24 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeDirectory;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createBoostMap;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closePrintWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexReader;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.setIndexWriterConfig;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createIndexSearcher;
+import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.LaTimes.LATimesParser.loadLaTimesDocs;
-import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetRankingModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validAnalyzer;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validRankModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetAnalyzer;
-
-import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
+import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
 
 public class Application {
 
@@ -97,7 +86,7 @@ public class Application {
 
 			System.out.println("indexing financial times document collection");
 			indexWriter.addDocuments(finTimesDocs);
-			
+
 			System.out.println("indexing federal register document collection");
 			indexWriter.addDocuments(fedRegisterDocs);
 

@@ -24,11 +24,6 @@ public class FBISData {
 	public FBISData() {
 		super(); 
 	}
-	
-	public FBISData(String docNum, String ht) {
-		this.docNum = docNum; 
-		this.ht = ht; 
-	}
 
 	public String getDocNum() {
 		return docNum;
