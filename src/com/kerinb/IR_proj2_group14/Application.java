@@ -106,8 +106,6 @@ public class Application {
 
 	private static void loadDocs() throws IOException {
 		System.out.println("loading financial times documents");
-
-
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
 		System.out.println("loaded financial times documents");
