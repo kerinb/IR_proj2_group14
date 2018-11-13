@@ -16,63 +16,59 @@ import org.jsoup.select.Elements;
 
 public class LATimesParser {
 
-	public static List<org.apache.lucene.document.Document> loadLaTimesDocs(String pathToFedRegister) throws IOException {
+	public static List<org.apache.lucene.document.Document> loadLaTimesDocs(String pathToLATimesRegister) throws IOException {
 
 		List<org.apache.lucene.document.Document> parsedLADocsList = new ArrayList<>();
 
-		File[] directories = new File(pathToFedRegister).listFiles(File::isDirectory);
 
-		//for each directory
-		for (File directory : directories) {
+		File folder = new File(pathToLATimesRegister);
+		File[] listOfFiles = folder.listFiles();
 
-			File[] files = directory.listFiles();
+		//iterate through the files
+		for (File file : listOfFiles) {
 
-			//iterate through the files
-			for (File file : files) {
-				System.out.println("parsing LA: " + file.getName());
+			//String sgml = FileUtils.readFileToString(file, "utf-8");
 
-				String sgml = FileUtils.readFileToString(file, "utf-8");
-				Document laTimesContent = Jsoup.parse(sgml);
+			//	System.out.println("smgl:" + sgml);
+			//	Document laTimesContent = Jsoup.parse(sgml);
+			Document laTimesContent = Jsoup.parse(file, null, "");
 
-				Elements docs = laTimesContent.select("DOC");
+			Elements docs = laTimesContent.select("DOC");
 
-				for(Element doc: docs) {
-					String docId,docNo,date,headline,section,text, byline;
+			for(Element doc: docs) {
+				String docId,docNo,date,headline,section,text, byline;
 
-					//get doc number
-					docNo = (doc.select("DOCNO").text());
+				//get doc number
+				docNo = (doc.select("DOCNO").text());
 
-					//get doc id
-					docId = doc.select("DOCID").text();
+				//get doc id
+				docId = doc.select("DOCID").text();
 
-					//get document date
-					date = (doc.select("DATE").select("P").text());
+				//get document date
+				date = (doc.select("DATE").select("P").text());
 
-					//get headline
-					headline = (doc.select("HEADLINE").select("P").text());
+				//get headline
+				headline = (doc.select("HEADLINE").select("P").text());
 
-					//get section
-					section = (doc.select("SECTION").select("P").text());
+				//get section
+				section = (doc.select("SECTION").select("P").text());
 
-					//get text 
-					text = (doc.select("TEXT").select("P").text());
+				//get text 
+				text = (doc.select("TEXT").select("P").text());
 
-					//get byline
-					byline = (doc.select("BYLINE").select("P").text());
+				//get byline
+				byline = (doc.select("BYLINE").select("P").text());
 
-					//add do parsed doc list
-					parsedLADocsList.add(createDocument(docNo, docId, date, headline, section, text, byline));
-
-				}
+				//add do parsed doc list
+				parsedLADocsList.add(createDocument(docNo, docId, date, headline, section, text, byline));
 
 			}
 
 		}
 		return parsedLADocsList;
 
-
-
 	}
+
 
 	private static org.apache.lucene.document.Document createDocument(
 			String docNo, String docId, String date, String headline, String section,String text, String byline)

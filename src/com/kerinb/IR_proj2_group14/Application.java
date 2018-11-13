@@ -92,6 +92,7 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
+			System.out.println("la times indexed");
 			
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
@@ -105,9 +106,8 @@ public class Application {
 	}
 
 	private static void loadDocs() throws IOException {
+		
 		System.out.println("loading financial times documents");
-
-
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
 		System.out.println("loaded financial times documents");
@@ -157,6 +157,7 @@ public class Application {
 
 			closeIndexReader(indexReader);
 			closePrintWriter(writer);
+			System.out.println("queries executed");
 
 		} catch (IOException e) {
 			System.out.println("ERROR: an error occurred when instantiating the printWriter!");
