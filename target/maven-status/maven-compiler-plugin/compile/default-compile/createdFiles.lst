@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 com/kerinb/IR_proj2_group14/DocumentFiles/FBIS/FBISProcessor.class
 com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesTags.class
 com/kerinb/IR_proj2_group14/DocumentFiles/FBIS/FBISTags.class
@@ -13,3 +14,20 @@ com/kerinb/IR_proj2_group14/DocumentFiles/FederalRegister/FedRegister.class
 com/kerinb/IR_proj2_group14/DocumentFiles/FinTimes/FinTimesLib.class
 com/kerinb/IR_proj2_group14/Application.class
 com/kerinb/IR_proj2_group14/DocumentFiles/QueryFiles/QueryObject.class
+=======
+com\kerinb\IR_proj2_group14\DocumentFiles\FBIS\FBISTags.class
+com\kerinb\IR_proj2_group14\DocumentFiles\LaTimes\LATimesParser.class
+com\kerinb\IR_proj2_group14\Application.class
+com\kerinb\IR_proj2_group14\RankAndAnalyzerFiles\CustomAnalyzer.class
+com\kerinb\IR_proj2_group14\DocumentFiles\QueryFiles\QueryObject.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FBIS\FBISProcessor.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FinTimes\FinTimesObject.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FinTimes\FinTimesLib.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FederalRegister\FedRegister.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FinTimes\FinTimesTags.class
+com\kerinb\IR_proj2_group14\ApplicationLibrary.class
+com\kerinb\IR_proj2_group14\DocumentFiles\QueryFiles\QueryTags.class
+com\kerinb\IR_proj2_group14\RankAndAnalyzerFiles\RankAndAnalyzers.class
+com\kerinb\IR_proj2_group14\DocumentFiles\FBIS\FBISData.class
+com\kerinb\IR_proj2_group14\DocumentFiles\QueryFiles\QueryLib.class
+>>>>>>> 2e7f21b4136eb4a05f435e81b021f2510e866727
