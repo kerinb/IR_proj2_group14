@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -16,76 +15,40 @@ import org.jsoup.select.Elements;
 
 public class LATimesParser {
 
-	public static List<org.apache.lucene.document.Document> loadLaTimesDocs(String pathToFedRegister) throws IOException {
+	public static List<org.apache.lucene.document.Document> loadLaTimesDocs(String pathToLATimesRegister) throws IOException {
 
 		List<org.apache.lucene.document.Document> parsedLADocsList = new ArrayList<>();
 
-		File[] directories = new File(pathToFedRegister).listFiles(File::isDirectory);
+		File folder = new File(pathToLATimesRegister);
+		File[] listOfFiles = folder.listFiles();
 
-		//for each directory
-		for (File directory : directories) {
+		for (File file : listOfFiles) {
 
-			File[] files = directory.listFiles();
+			Document laTimesContent = Jsoup.parse(file, null, "");
 
-			//iterate through the files
-			for (File file : files) {
-				System.out.println("parsing LA: " + file.getName());
+			Elements docs = laTimesContent.select("DOC");
 
-				String sgml = FileUtils.readFileToString(file, "utf-8");
-				Document laTimesContent = Jsoup.parse(sgml);
-
-				Elements docs = laTimesContent.select("DOC");
-
-				for(Element doc: docs) {
-					String docId,docNo,date,headline,section,text, byline;
-
-					//get doc number
-					docNo = (doc.select("DOCNO").text());
-
-					//get doc id
-					docId = doc.select("DOCID").text();
-
-					//get document date
-					date = (doc.select("DATE").select("P").text());
-
-					//get headline
-					headline = (doc.select("HEADLINE").select("P").text());
-
-					//get section
-					section = (doc.select("SECTION").select("P").text());
-
-					//get text 
-					text = (doc.select("TEXT").select("P").text());
-
-					//get byline
-					byline = (doc.select("BYLINE").select("P").text());
-
-					//add do parsed doc list
-					parsedLADocsList.add(createDocument(docNo, docId, date, headline, section, text, byline));
-
-				}
+			for(Element doc: docs) {
+				String docNo, headline, text;
+				docNo = (doc.select("DOCNO").text());
+				headline = (doc.select("HEADLINE").select("P").text());
+				text = (doc.select("TEXT").select("P").text());
+				parsedLADocsList.add(createDocument(docNo, headline, text));
 
 			}
 
 		}
 		return parsedLADocsList;
-
-
-
 	}
 
 	private static org.apache.lucene.document.Document createDocument(
-			String docNo, String docId, String date, String headline, String section,String text, String byline) 
-	{
+			String docNo, String headline,String text) {
 		org.apache.lucene.document.Document document = new org.apache.lucene.document.Document();
-		document.add(new StringField("docNo", docNo, Field.Store.YES));
-		document.add(new StringField("docId", docId, Field.Store.YES));
-		document.add(new TextField("date", date, Field.Store.YES) );
+		document.add(new StringField("docno", docNo, Field.Store.YES));
 		document.add(new TextField("headline", headline, Field.Store.YES) );
-		document.add(new TextField("section", section, Field.Store.YES) );
 		document.add(new TextField("text", text, Field.Store.YES) );
-		document.add(new TextField("byline", byline, Field.Store.YES) );
 		return document;
 	}
-
 }
+
+

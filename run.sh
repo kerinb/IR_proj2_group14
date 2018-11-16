@@ -36,3 +36,11 @@ java -jar "$(pwd)"/target/cranfield_application-0.0.1-SNAPSHOT.jar BM25 CUSTOM #
 #java -jar "$(pwd)"/target/cranfield_application-0.0.1-SNAPSHOT.jar CLASSIC CUSTOM
 #java -jar "$(pwd)"/target/cranfield_application-0.0.1-SNAPSHOT.jar LM_DIRICHLET CUSTOM
 #java -jar "$(pwd)"/target/cranfield_application-0.0.1-SNAPSHOT.jar SWEET_SPOT CUSTOM
+
+
+
+
+
+
+
+

@@ -16,8 +16,8 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -26,23 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeDirectory;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createBoostMap;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closePrintWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexReader;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.closeIndexWriter;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.getFileNamesFromDirTree;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.setIndexWriterConfig;
-import static com.kerinb.IR_proj2_group14.ApplicationLibrary.createIndexSearcher;
+import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
+import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FinTimes.FinTimesLib.loadFinTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.LaTimes.LATimesParser.loadLaTimesDocs;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.QueryFiles.QueryLib.loadQueriesFromFile;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetRankingModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validAnalyzer;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.validRankModel;
-import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.callSetAnalyzer;
-
-import static com.kerinb.IR_proj2_group14.DocumentFiles.FederalRegister.FedRegister.loadFedRegisterDocs;
+import static com.kerinb.IR_proj2_group14.RankAndAnalyzerFiles.RankAndAnalyzers.*;
 
 public class Application {
 
@@ -51,7 +41,7 @@ public class Application {
 	private final static String absPathToFinTimes = String.format("%s/DataSet/ft", currentRelativePath);
 	private final static String absPathToFedRegister = String.format("%s/DataSet/fr94",currentRelativePath);
 	private final static String absPathToLaTimes = String.format("%s/DataSet/latimes",currentRelativePath);
-
+	private final static String absPathToFBIS = String.format("%s/DataSet/fbis",currentRelativePath);
 
 	private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
@@ -64,8 +54,7 @@ public class Application {
 	private static List<Document> finTimesDocs = new ArrayList<>();
 	private static List<Document> fedRegisterDocs = new ArrayList<>();
 	private static List<Document> laTimesDocs = new ArrayList<>();
-
-	// @TODO - other List<Document> can be added here for the other document collections.
+	private static List<Document> fbisDocs = new ArrayList<>();
 
 	public static void main(String[] args) throws ParseException, IOException {
 		System.out.println(String.format("Ranking model: %s\t Analyzer:%s", args[0], args[1]));
@@ -73,9 +62,19 @@ public class Application {
 
 			similarityModel = callSetRankingModel(args[0]);
 			analyzer =  callSetAnalyzer(args[1]);
-			Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
-			loadDocs();
-			indexDocuments(similarityModel, analyzer, directory);
+
+			Directory directory;
+			// so we don't need to parse &^ index everytime
+            // THEREFORE everytime we want to test we need to delete the index
+            // in terminal use rm -rf /Index/ to delete the index dir.
+			if(!new File(absPathToIndex).exists()){
+				directory = FSDirectory.open(Paths.get(absPathToIndex));
+				loadDocs();
+				indexDocuments(similarityModel, analyzer, directory);
+			} else {
+				directory = FSDirectory.open(Paths.get(absPathToIndex));
+			}
+
 			System.out.println("loading and executing queries");
 			executeQueries(directory);
 
@@ -98,15 +97,17 @@ public class Application {
 
 			System.out.println("indexing financial times document collection");
 			indexWriter.addDocuments(finTimesDocs);
-			
+
 			System.out.println("indexing federal register document collection");
 			indexWriter.addDocuments(fedRegisterDocs);
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
+			System.out.println("la times indexed");
 			
-			// @TODO - Add your document collections to the index here
-
+			System.out.println("indexing foreign broadcast information service document collection");
+			indexWriter.addDocuments(fbisDocs);
+			
 			closeIndexWriter(indexWriter);
 
 		} catch (IOException e) {
@@ -116,9 +117,8 @@ public class Application {
 	}
 
 	private static void loadDocs() throws IOException {
+		
 		System.out.println("loading financial times documents");
-
-
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
 		System.out.println("loaded financial times documents");
@@ -127,10 +127,13 @@ public class Application {
 		fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
 		System.out.println("loaded federal register documents");
 
+		System.out.println("loading foreign broadcast information service documents");
+		fbisDocs= loadFBISDocs(absPathToFBIS);
+		System.out.println("loaded foreign broadcast information service documents");
+
 		System.out.println("loading la times documents");
 		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
 		System.out.println("loaded la times documents");
-		// @TODO - Other document collections can be added here
 	}
 
 	private static void executeQueries(Directory directory) throws ParseException {
@@ -165,6 +168,7 @@ public class Application {
 
 			closeIndexReader(indexReader);
 			closePrintWriter(writer);
+			System.out.println("queries executed");
 
 		} catch (IOException e) {
 			System.out.println("ERROR: an error occurred when instantiating the printWriter!");
