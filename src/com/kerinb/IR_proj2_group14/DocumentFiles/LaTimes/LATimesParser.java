@@ -42,25 +42,25 @@ public class LATimesParser {
 				docNo = (doc.select("DOCNO").text());
 
 				//get doc id
-				docId = doc.select("DOCID").text();
+				//docId = doc.select("DOCID").text();
 
 				//get document date
-				date = (doc.select("DATE").select("P").text());
+				//date = (doc.select("DATE").select("P").text());
 
 				//get headline
 				headline = (doc.select("HEADLINE").select("P").text());
 
 				//get section
-				section = (doc.select("SECTION").select("P").text());
+				//section = (doc.select("SECTION").select("P").text());
 
 				//get text 
 				text = (doc.select("TEXT").select("P").text());
 
 				//get byline
-				byline = (doc.select("BYLINE").select("P").text());
+				//byline = (doc.select("BYLINE").select("P").text());
 
 				//add do parsed doc list
-				parsedLADocsList.add(createDocument(docNo, docId, date, headline, section, text, byline));
+				parsedLADocsList.add(createDocument(docNo, headline, text));
 
 			}
 
@@ -71,17 +71,15 @@ public class LATimesParser {
 
 
 	private static org.apache.lucene.document.Document createDocument(
-			String docNo, String docId, String date, String headline, String section,String text, String byline)
+			String docNo, String headline,String text)
 	{
 		org.apache.lucene.document.Document document = new org.apache.lucene.document.Document();
 		document.add(new StringField("docNo", docNo, Field.Store.YES));
-		document.add(new StringField("docId", docId, Field.Store.YES));
-		document.add(new TextField("date", date, Field.Store.YES) );
 		document.add(new TextField("headline", headline, Field.Store.YES) );
-		document.add(new TextField("section", section, Field.Store.YES) );
 		document.add(new TextField("text", text, Field.Store.YES) );
-		document.add(new TextField("byline", byline, Field.Store.YES) );
 		return document;
 	}
 
 }
+
+
