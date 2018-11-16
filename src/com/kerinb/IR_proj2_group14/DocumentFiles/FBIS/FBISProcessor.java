@@ -21,12 +21,15 @@ public class FBISProcessor {
 
 	private static BufferedReader br;
 	private static List<Document> fbisDocList = new ArrayList<>();
+	private static final String [] IGNORE_FILES = {"readchg.txt", "readmefb.txt"};
 
 	public static List<Document> loadFBISDocs(String fbisDirectory) throws IOException {
 		Directory dir = FSDirectory.open(Paths.get(fbisDirectory));
 		for(String fbisFile : dir.listAll()) {
-			br = new BufferedReader(new FileReader(fbisDirectory + "/" + fbisFile));
-    		process();
+			if(!fbisFile.equals(IGNORE_FILES[0]) && !fbisFile.equals(IGNORE_FILES[1])) {
+				br = new BufferedReader(new FileReader(fbisDirectory + "/" + fbisFile));
+	    		process();
+			}
     	}
 		return fbisDocList;
 	}
