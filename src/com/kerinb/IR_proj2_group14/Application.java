@@ -64,16 +64,21 @@ public class Application {
 			analyzer =  callSetAnalyzer(args[1]);
 
 			Directory directory;
+
+            directory = FSDirectory.open(Paths.get(absPathToIndex));
+            loadDocs();
+            indexDocuments(similarityModel, analyzer, directory);
+
 			// so we don't need to parse &^ index everytime
             // THEREFORE everytime we want to test we need to delete the index
             // in terminal use rm -rf /Index/ to delete the index dir.
-			if(!new File(absPathToIndex).exists()){
+			/*if(!new File(absPathToIndex).exists()){
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 				loadDocs();
 				indexDocuments(similarityModel, analyzer, directory);
 			} else {
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
-			}
+			}*/
 
 			System.out.println("loading and executing queries");
 			executeQueries(directory);
