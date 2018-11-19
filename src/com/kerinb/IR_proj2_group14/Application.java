@@ -154,7 +154,7 @@ public class Application {
                 String relevantNarr = splitNarrative.get(0);
                 // String irrelevantNarr = splitNarrative.get(1);
 
-				String queryContent = QueryParser.escape(queryData.getDescription() + " " + relevantNarr);
+				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
 				queryContent = queryContent.trim();
 
 				Query query;
