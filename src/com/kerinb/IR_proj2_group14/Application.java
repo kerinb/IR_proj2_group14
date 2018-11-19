@@ -10,9 +10,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -152,7 +150,7 @@ public class Application {
 			for (QueryObject queryData : loadedQueries) {
                 List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
                 String relevantNarr = splitNarrative.get(0);
-                // String irrelevantNarr = splitNarrative.get(1);
+                //String irrelevantNarr = splitNarrative.get(1).trim();
 
 				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
 				queryContent = queryContent.trim();
@@ -162,6 +160,7 @@ public class Application {
 				if (queryContent.length() > 0) {
 
 					query = queryParser.parse(queryContent);
+
 					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
 
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
@@ -197,15 +196,14 @@ public class Application {
                 relevantNarr.append(sentence.replaceAll(
                         "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
                         ""));
-            } else{
-                irrelevantNarr.append(sentence.replaceAll("is not relevant|also not relevant|are not relevant|are irrelevant|is irrelevant", ""));
+            } else {
+                // This produces an error when parsing into query - starts with an <eof>?!
+                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
             }
             index = bi.current();
         }
-
         splitNarrative.add(relevantNarr.toString());
         splitNarrative.add(irrelevantNarr.toString());
         return splitNarrative;
     }
 }
-
