@@ -10,9 +10,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -22,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +63,7 @@ public class Application {
 			analyzer =  callSetAnalyzer(args[1]);
 
 			Directory directory;
+
 			// so we don't need to parse &^ index everytime
             // THEREFORE everytime we want to test we need to delete the index
             // in terminal use rm -rf /Index/ to delete the index dir.
@@ -72,6 +72,7 @@ public class Application {
 				loadDocs();
 				indexDocuments(similarityModel, analyzer, directory);
 			} else {
+                System.out.println("Using previously loaded data!");
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 			}
 
@@ -115,7 +116,6 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
-
 	private static void loadDocs() throws IOException {
 		
 		System.out.println("loading financial times documents");
@@ -148,7 +148,11 @@ public class Application {
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-				String queryContent = QueryParser.escape(queryData.getDescription());
+                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+                String relevantNarr = splitNarrative.get(0);
+                //String irrelevantNarr = splitNarrative.get(1).trim();
+
+				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
 				queryContent = queryContent.trim();
 
 				Query query;
@@ -156,6 +160,7 @@ public class Application {
 				if (queryContent.length() > 0) {
 
 					query = queryParser.parse(queryContent);
+
 					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
 
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
@@ -175,5 +180,30 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
-}
 
+    private static List<String> splitNarrIntoRelNotRel(String narrative) {
+        StringBuilder relevantNarr = new StringBuilder();
+        StringBuilder irrelevantNarr = new StringBuilder();
+        List<String> splitNarrative = new ArrayList<>();
+
+        BreakIterator bi = BreakIterator.getSentenceInstance();
+        bi.setText(narrative);
+        int index = 0;
+        while (bi.next() != BreakIterator.DONE) {
+            String sentence = narrative.substring(index, bi.current());
+
+            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+                relevantNarr.append(sentence.replaceAll(
+                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+                        ""));
+            } else {
+                // This produces an error when parsing into query - starts with an <eof>?!
+                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
+            }
+            index = bi.current();
+        }
+        splitNarrative.add(relevantNarr.toString());
+        splitNarrative.add(irrelevantNarr.toString());
+        return splitNarrative;
+    }
+}
