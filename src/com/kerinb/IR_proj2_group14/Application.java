@@ -118,7 +118,6 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
-
 	private static void loadDocs() throws IOException {
 		
 		System.out.println("loading financial times documents");
