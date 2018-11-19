@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,20 +66,17 @@ public class Application {
 
 			Directory directory;
 
-            directory = FSDirectory.open(Paths.get(absPathToIndex));
-            loadDocs();
-            indexDocuments(similarityModel, analyzer, directory);
-
 			// so we don't need to parse &^ index everytime
             // THEREFORE everytime we want to test we need to delete the index
             // in terminal use rm -rf /Index/ to delete the index dir.
-			/*if(!new File(absPathToIndex).exists()){
+			if(!new File(absPathToIndex).exists()){
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 				loadDocs();
 				indexDocuments(similarityModel, analyzer, directory);
 			} else {
+                System.out.println("Using previously loaded data!");
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
-			}*/
+			}
 
 			System.out.println("loading and executing queries");
 			executeQueries(directory);
@@ -153,7 +151,11 @@ public class Application {
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-				String queryContent = QueryParser.escape(queryData.getDescription());
+                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+                String relevantNarr = splitNarrative.get(0);
+                // String irrelevantNarr = splitNarrative.get(1);
+
+				String queryContent = QueryParser.escape(queryData.getDescription() + " " + relevantNarr);
 				queryContent = queryContent.trim();
 
 				Query query;
@@ -180,5 +182,31 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
+
+    private static List<String> splitNarrIntoRelNotRel(String narrative) {
+        StringBuilder relevantNarr = new StringBuilder();
+        StringBuilder irrelevantNarr = new StringBuilder();
+        List<String> splitNarrative = new ArrayList<>();
+
+        BreakIterator bi = BreakIterator.getSentenceInstance();
+        bi.setText(narrative);
+        int index = 0;
+        while (bi.next() != BreakIterator.DONE) {
+            String sentence = narrative.substring(index, bi.current());
+
+            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+                relevantNarr.append(sentence.replaceAll(
+                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+                        ""));
+            } else{
+                irrelevantNarr.append(sentence.replaceAll("is not relevant|also not relevant|are not relevant|are irrelevant|is irrelevant", ""));
+            }
+            index = bi.current();
+        }
+
+        splitNarrative.add(relevantNarr.toString());
+        splitNarrative.add(irrelevantNarr.toString());
+        return splitNarrative;
+    }
 }
 
