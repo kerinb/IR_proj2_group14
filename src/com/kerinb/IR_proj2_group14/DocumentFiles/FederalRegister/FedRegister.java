@@ -26,9 +26,27 @@ public class FedRegister {
                 Elements documents = d.select("DOC");
 
                 for (Element document : documents) {
+
+                    title = document.select("DOCTITLE").text();
+
+                    document.select("DOCTITLE").remove();
+                    document.select("ADDRESS").remove();
+                    document.select("SIGNER").remove();
+                    document.select("SIGNJOB").remove();
+                    document.select("BILLING").remove();
+                    document.select("FRFILING").remove();
+                    document.select("DATE").remove();
+                    document.select("CRFNO").remove();
+                    document.select("RINDOCK").remove();
+                    //document.select("USDEPT").remove();
+                    //document.select("AGENCY").remove();
+                    //document.select("FURTHER").remove();
+                    //document.select("SUMMARY").remove();
+                    //document.select("ACTION").remove();
+                    //document.select("SUPPLEM").remove();
+
                     docno = document.select("DOCNO").text();
                     text = document.select("TEXT").text();
-                    title = document.select("DOCTITLE").text();
 
                     addFedRegisterDoc(docno, text, title);
                 }
