@@ -4,6 +4,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.IntPoint;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -54,6 +55,8 @@ public class FinTimesLib {
             finTimesObject = addCreateFinTimesObject(finTimesObject);
         } else if (currLine.contains(FinTimesTags.DOC_NO_START.getTag())){
             finTimesObject.setDocNo(parseFinTimesDoc(currLine, "docno"));
+        } else if (currLine.contains(FinTimesTags.DATE_START.getTag())){
+            finTimesObject.setDate(parseFinTimesDoc(currLine, "date"));
         } else if (currLine.equals(FinTimesTags.HEADLINE_START.getTag())){
             headlineFlag = true;
         } else if(currLine.contains(FinTimesTags.HEADLINE_END.getTag())){
@@ -106,6 +109,9 @@ public class FinTimesLib {
             case "docno":
                 return currLine.replaceAll(FinTimesTags.DOC_NO_START.getTag(), "").replaceAll(
                         FinTimesTags.DOC_NO_END.getTag(), "");
+            case "date":
+                return currLine.replaceAll(FinTimesTags.DATE_START.getTag(), "").replaceAll(
+                        FinTimesTags.DATE_END.getTag(), "");
             default:
                 return null;
         }
@@ -114,11 +120,15 @@ public class FinTimesLib {
     private static Document createNewFinTimesDoc(FinTimesObject finTimesObject) {
         Document document = new Document();
 
+        Integer date = 0;
+        if(finTimesObject.getDate() != "") date = Integer.valueOf(finTimesObject.getDate());
+
         document.add(new StringField("id", finTimesObject.getDocId(), Field.Store.YES));
         document.add(new StringField("byline", finTimesObject.getByLine(), Field.Store.YES));
         document.add(new StringField("docno", finTimesObject.getDocNo(), Field.Store.YES));
         document.add(new TextField("headline", finTimesObject.getHeadline(), Field.Store.YES));
         document.add(new TextField("text", finTimesObject.getText(), Field.Store.YES));
+        document.add(new IntPoint("date", date));
 
         return document;
     }
