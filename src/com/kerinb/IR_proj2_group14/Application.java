@@ -10,20 +10,23 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.document.IntPoint;
 
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
@@ -61,9 +64,21 @@ public class Application {
 
 			similarityModel = callSetRankingModel(args[0]);
 			analyzer =  callSetAnalyzer(args[1]);
-			Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
-			loadDocs();
-			indexDocuments(similarityModel, analyzer, directory);
+
+			Directory directory;
+
+			// so we don't need to parse &^ index everytime
+            // THEREFORE everytime we want to test we need to delete the index
+            // in terminal use rm -rf /Index/ to delete the index dir.
+			if(!new File(absPathToIndex).exists()){
+				directory = FSDirectory.open(Paths.get(absPathToIndex));
+				loadDocs();
+				indexDocuments(similarityModel, analyzer, directory);
+			} else {
+                System.out.println("Using previously loaded data!");
+				directory = FSDirectory.open(Paths.get(absPathToIndex));
+			}
+
 			System.out.println("loading and executing queries");
 			executeQueries(directory);
 
@@ -92,8 +107,7 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
-			System.out.println("la times indexed");
-			
+
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
 			
@@ -104,7 +118,6 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
-
 	private static void loadDocs() throws IOException {
 		
 		System.out.println("loading financial times documents");
@@ -116,13 +129,13 @@ public class Application {
 		fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
 		System.out.println("loaded federal register documents");
 
-		System.out.println("loading la times documents");
-		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
-		System.out.println("loaded la times documents");
-		
 		System.out.println("loading foreign broadcast information service documents");
 		fbisDocs= loadFBISDocs(absPathToFBIS);
 		System.out.println("loaded foreign broadcast information service documents");
+
+		System.out.println("loading la times documents");
+		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
+		System.out.println("loaded la times documents");
 	}
 
 	private static void executeQueries(Directory directory) throws ParseException {
@@ -133,11 +146,16 @@ public class Application {
 			Map<String, Float> boost = createBoostMap();
 			QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
 
-			PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
+            PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-				String queryContent = QueryParser.escape(queryData.getDescription());
+                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+                String relevantNarr = splitNarrative.get(0).trim();
+                String irrelevantNarr = splitNarrative.get(1).trim();
+
+				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+
 				queryContent = queryContent.trim();
 
 				Query query;
@@ -145,6 +163,7 @@ public class Application {
 				if (queryContent.length() > 0) {
 
 					query = queryParser.parse(queryContent);
+
 					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
 
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
@@ -164,5 +183,30 @@ public class Application {
 			System.out.println(String.format("ERROR MESSAGE: %s", e.getMessage()));
 		}
 	}
-}
 
+    private static List<String> splitNarrIntoRelNotRel(String narrative) {
+        StringBuilder relevantNarr = new StringBuilder();
+        StringBuilder irrelevantNarr = new StringBuilder();
+        List<String> splitNarrative = new ArrayList<>();
+
+        BreakIterator bi = BreakIterator.getSentenceInstance();
+        bi.setText(narrative);
+        int index = 0;
+        while (bi.next() != BreakIterator.DONE) {
+            String sentence = narrative.substring(index, bi.current());
+
+            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+                relevantNarr.append(sentence.replaceAll(
+                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+                        ""));
+            } else {
+                // This produces an error when parsing into query - starts with an <eof>?!
+                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT", ""));
+            }
+            index = bi.current();
+        }
+        splitNarrative.add(relevantNarr.toString());
+        splitNarrative.add(irrelevantNarr.toString());
+        return splitNarrative;
+    }
+}
