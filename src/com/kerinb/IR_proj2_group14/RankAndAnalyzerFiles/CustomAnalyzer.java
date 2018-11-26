@@ -26,7 +26,7 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
 
 	private final Path currentRelativePath = Paths.get("").toAbsolutePath();
 	private BufferedReader countries; 
-
+	
 	CustomAnalyzer(){
 		super(StandardAnalyzer.ENGLISH_STOP_WORDS_SET);
 	}
@@ -47,7 +47,7 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
 	private SynonymMap createSynonymMap() {
 		SynonymMap synMap = new SynonymMap(null, null, 0);
 		try {
-			countries = new BufferedReader(new FileReader(currentRelativePath + "/Dataset/countries.txt"));
+			countries = new BufferedReader(new FileReader(currentRelativePath + "/DataSet/countries.txt"));
 
 			final SynonymMap.Builder builder = new SynonymMap.Builder(true);
 			String country = countries.readLine(); 
