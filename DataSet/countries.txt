@@ -64,6 +64,7 @@ Georgia
 Germany
 Ghana
 Greece
+Great Britain
 Grenada
 Guatemala
 Guinea
@@ -78,6 +79,7 @@ Indonesia
 Iran
 Iraq
 Ireland {Republic}
+Ireland
 Israel
 Italy
 Ivory Coast
@@ -194,3 +196,13 @@ Vietnam
 Yemen
 Zambia
 Zimbabwe
+Asia
+Africa
+North America
+South America
+Antarctica
+Europe
+Australia
+America
+U.S.
+U.K.

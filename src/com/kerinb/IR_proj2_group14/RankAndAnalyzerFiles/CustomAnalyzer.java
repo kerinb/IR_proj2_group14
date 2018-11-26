@@ -10,6 +10,7 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.StopwordAnalyzerBase;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.FlattenGraphFilter;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.miscellaneous.TrimFilter;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
@@ -38,9 +39,9 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
 		TokenStream tokenStream = new StandardFilter(tokenizer);
 		tokenStream = new LowerCaseFilter(tokenStream);
 		tokenStream = new TrimFilter(tokenStream);
+		tokenStream = new FlattenGraphFilter(new SynonymGraphFilter(tokenStream, createSynonymMap(), true));
 		tokenStream = new StopFilter(tokenStream, StopFilter.makeStopSet(stopWords,true));
 		tokenStream = new SnowballFilter(tokenStream, new EnglishStemmer());
-		tokenStream = new SynonymGraphFilter(tokenStream, createSynonymMap(), true);
 		return new TokenStreamComponents(tokenizer, tokenStream);
 	}
 
@@ -53,14 +54,14 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
 			String country = countries.readLine(); 
 
 			while(country != null) {
-				builder.add(new CharsRef(country), new CharsRef("country"), true);
+				builder.add(new CharsRef("country"), new CharsRef(country), true);
+				builder.add(new CharsRef("countries"), new CharsRef(country), true);
 				country = countries.readLine();
 			}
 
 			synMap = builder.build();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(String.format("ERROR: " + e.getLocalizedMessage() + "occurred when trying to create synonym map"));
 		}
 		return synMap;
 	}
