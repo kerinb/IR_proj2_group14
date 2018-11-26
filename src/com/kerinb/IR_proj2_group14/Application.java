@@ -150,16 +150,29 @@ public class Application {
 			for (QueryObject queryData : loadedQueries) {
                 List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
                 String relevantNarr = splitNarrative.get(0);
-                //String irrelevantNarr = splitNarrative.get(1).trim();
+                String irrelevantNarr = splitNarrative.get(1).trim();
+
+                String queryContentNeg = QueryParser.escape(irrelevantNarr).trim();
 
 				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
 				queryContent = queryContent.trim();
 
-				Query query;
+                Query queryPos;
+                Query queryNeg;
 
 				if (queryContent.length() > 0) {
 
-					query = queryParser.parse(queryContent);
+                    queryPos = queryParser.parse(queryContent);
+
+                    BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
+                    queryBuilder.add(queryPos, BooleanClause.Occur.SHOULD);
+
+                    if(queryContentNeg.length() > 0){
+                        queryNeg = queryParser.parse(queryContentNeg);
+                        queryBuilder.add(queryNeg, BooleanClause.Occur.SHOULD);
+                    }
+
+                    Query query = queryBuilder.build();
 
 					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
 

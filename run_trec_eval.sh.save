@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-"$(pwd)"/trec_eval/trec_eval -m all_trec "$(pwd)"/DataSet/queryResult "$(pwd)"/cran/cranQueryResults > "$(pwd)"/output.txt
