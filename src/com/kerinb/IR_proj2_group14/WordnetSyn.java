@@ -85,6 +85,7 @@ public class WordnetSyn {
 
 
 		SynonymMap map = new SynonymMap(new FileInputStream(fileDir)); 	
+
 		StringBuilder builder = new StringBuilder();
 
 		for (int i = 0; i < words.size(); i++) 
