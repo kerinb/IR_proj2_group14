@@ -107,10 +107,7 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
-<<<<<<< HEAD
 			System.out.println("la times indexed");
-=======
->>>>>>> 6da71770fb73c3409d0dd4fe3b2a014a452ed833
 
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
@@ -222,33 +219,7 @@ public class Application {
 		}
 	}
 
-<<<<<<< HEAD
-	private static List<String> splitNarrIntoRelNotRel(String narrative) {
-		StringBuilder relevantNarr = new StringBuilder();
-		StringBuilder irrelevantNarr = new StringBuilder();
-		List<String> splitNarrative = new ArrayList<>();
 
-		BreakIterator bi = BreakIterator.getSentenceInstance();
-		bi.setText(narrative);
-		int index = 0;
-		while (bi.next() != BreakIterator.DONE) {
-			String sentence = narrative.substring(index, bi.current());
-
-			if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
-				relevantNarr.append(sentence.replaceAll(
-						"a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
-						""));
-			} else {
-				// This produces an error when parsing into query - starts with an <eof>?!
-				irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
-			}
-			index = bi.current();
-		}
-		splitNarrative.add(relevantNarr.toString());
-		splitNarrative.add(irrelevantNarr.toString());
-		return splitNarrative;
-	}
-=======
     private static List<String> splitNarrIntoRelNotRel(String narrative) {
         StringBuilder relevantNarr = new StringBuilder();
         StringBuilder irrelevantNarr = new StringBuilder();
@@ -274,5 +245,4 @@ public class Application {
         splitNarrative.add(irrelevantNarr.toString());
         return splitNarrative;
     }
->>>>>>> 6da71770fb73c3409d0dd4fe3b2a014a452ed833
 }
