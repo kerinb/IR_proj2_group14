@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.IntPoint;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,6 +25,9 @@ public class LATimesParser {
 
 		for (File file : listOfFiles) {
 
+			String filename = file.getName().substring(2);
+			String date = filename.substring(4) + filename.substring(0,2) + filename.substring(2,4);
+
 			Document laTimesContent = Jsoup.parse(file, null, "");
 
 			Elements docs = laTimesContent.select("DOC");
@@ -33,8 +37,7 @@ public class LATimesParser {
 				docNo = (doc.select("DOCNO").text());
 				headline = (doc.select("HEADLINE").select("P").text());
 				text = (doc.select("TEXT").select("P").text());
-				parsedLADocsList.add(createDocument(docNo, headline, text));
-
+				parsedLADocsList.add(createDocument(docNo, headline, text, date));
 			}
 
 		}
@@ -42,11 +45,12 @@ public class LATimesParser {
 	}
 
 	private static org.apache.lucene.document.Document createDocument(
-			String docNo, String headline,String text) {
+			String docNo, String headline,String text,String date) {
 		org.apache.lucene.document.Document document = new org.apache.lucene.document.Document();
 		document.add(new StringField("docno", docNo, Field.Store.YES));
 		document.add(new TextField("headline", headline, Field.Store.YES) );
 		document.add(new TextField("text", text, Field.Store.YES) );
+		document.add(new IntPoint("date", Integer.valueOf(date)) );
 		return document;
 	}
 }

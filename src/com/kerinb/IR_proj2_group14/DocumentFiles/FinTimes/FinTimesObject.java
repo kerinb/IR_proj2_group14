@@ -7,6 +7,7 @@ class FinTimesObject {
     private String headline;
     private String byLine;
     private String text;
+    private String date;
 
     FinTimesObject(){
         this.docNo = "";
@@ -14,6 +15,7 @@ class FinTimesObject {
         this.headline = "";
         this.byLine = "";
         this.text = "";
+        this.date = "";
     }
 
     String getDocNo() { return docNo; }
@@ -30,4 +32,7 @@ class FinTimesObject {
 
     String getText() { return text; }
     void setText(String text) { this.text = text; }
+
+    String getDate() { return date; }
+    void setDate(String date) { this.date = date; }
 }

@@ -24,6 +24,9 @@ import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.document.IntPoint;
 
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
@@ -104,7 +107,10 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
+<<<<<<< HEAD
 			System.out.println("la times indexed");
+=======
+>>>>>>> 6da71770fb73c3409d0dd4fe3b2a014a452ed833
 
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
@@ -144,7 +150,7 @@ public class Application {
 			Map<String, Float> boost = createBoostMap();
 			QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
 
-			PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
+            PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
@@ -156,6 +162,7 @@ public class Application {
 
 				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
 				System.out.println("query content: " + queryContent);
+
 				queryContent = queryContent.trim();
 
 
@@ -215,6 +222,7 @@ public class Application {
 		}
 	}
 
+<<<<<<< HEAD
 	private static List<String> splitNarrIntoRelNotRel(String narrative) {
 		StringBuilder relevantNarr = new StringBuilder();
 		StringBuilder irrelevantNarr = new StringBuilder();
@@ -240,4 +248,31 @@ public class Application {
 		splitNarrative.add(irrelevantNarr.toString());
 		return splitNarrative;
 	}
+=======
+    private static List<String> splitNarrIntoRelNotRel(String narrative) {
+        StringBuilder relevantNarr = new StringBuilder();
+        StringBuilder irrelevantNarr = new StringBuilder();
+        List<String> splitNarrative = new ArrayList<>();
+
+        BreakIterator bi = BreakIterator.getSentenceInstance();
+        bi.setText(narrative);
+        int index = 0;
+        while (bi.next() != BreakIterator.DONE) {
+            String sentence = narrative.substring(index, bi.current());
+
+            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+                relevantNarr.append(sentence.replaceAll(
+                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+                        ""));
+            } else {
+                // This produces an error when parsing into query - starts with an <eof>?!
+                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT", ""));
+            }
+            index = bi.current();
+        }
+        splitNarrative.add(relevantNarr.toString());
+        splitNarrative.add(irrelevantNarr.toString());
+        return splitNarrative;
+    }
+>>>>>>> 6da71770fb73c3409d0dd4fe3b2a014a452ed833
 }
