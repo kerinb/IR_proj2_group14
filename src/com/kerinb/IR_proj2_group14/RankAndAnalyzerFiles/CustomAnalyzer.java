@@ -13,6 +13,7 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.FlattenGraphFilter;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.miscellaneous.TrimFilter;
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
@@ -39,6 +40,9 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
 		TokenStream tokenStream = new StandardFilter(tokenizer);
 		tokenStream = new LowerCaseFilter(tokenStream);
 		tokenStream = new TrimFilter(tokenStream);
+		tokenStream = new FlattenGraphFilter(new WordDelimiterGraphFilter(tokenStream, WordDelimiterGraphFilter.SPLIT_ON_NUMERICS | 
+							WordDelimiterGraphFilter.GENERATE_WORD_PARTS | WordDelimiterGraphFilter.GENERATE_NUMBER_PARTS | 
+								 WordDelimiterGraphFilter.PRESERVE_ORIGINAL , null));
 		tokenStream = new FlattenGraphFilter(new SynonymGraphFilter(tokenStream, createSynonymMap(), true));
 		tokenStream = new StopFilter(tokenStream, StopFilter.makeStopSet(stopWords,true));
 		tokenStream = new SnowballFilter(tokenStream, new EnglishStemmer());
