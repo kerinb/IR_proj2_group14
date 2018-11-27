@@ -65,14 +65,14 @@ public class Application {
 			Directory directory;
 
 			// so we don't need to parse &^ index everytime
-            // THEREFORE everytime we want to test we need to delete the index
-            // in terminal use rm -rf /Index/ to delete the index dir.
+			// THEREFORE everytime we want to test we need to delete the index
+			// in terminal use rm -rf /Index/ to delete the index dir.
 			if(!new File(absPathToIndex).exists()){
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 				loadDocs();
 				indexDocuments(similarityModel, analyzer, directory);
 			} else {
-                System.out.println("Using previously loaded data!");
+				System.out.println("Using previously loaded data!");
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 			}
 
@@ -105,10 +105,10 @@ public class Application {
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
 			System.out.println("la times indexed");
-			
+
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
-			
+
 			closeIndexWriter(indexWriter);
 
 		} catch (IOException e) {
@@ -117,7 +117,7 @@ public class Application {
 		}
 	}
 	private static void loadDocs() throws IOException {
-		
+
 		System.out.println("loading financial times documents");
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
@@ -148,16 +148,48 @@ public class Application {
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
-                String relevantNarr = splitNarrative.get(0);
-                //String irrelevantNarr = splitNarrative.get(1).trim();
+				List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+				String relevantNarr = splitNarrative.get(0);
+				//String irrelevantNarr = splitNarrative.get(1).trim();
+
+				//original
 
 				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+				System.out.println("query content: " + queryContent);
 				queryContent = queryContent.trim();
+
+
+				//Wordnet implementation
+
+				//								String origQuery = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+				//								origQuery = origQuery.trim();
+				//				
+				//							//	String origQuery =  queryData.getTitle().concat(" " + queryData.getDescription()).concat(" " + queryData.getNarrative());
+				//								System.out.println("orig query: " + origQuery);
+				//								String queryContent = WordnetSyn.getSynonyms(origQuery);
+				//								System.out.println("query content: " + queryContent);
+				//								queryContent = queryContent.trim();
+
+
+
+
+
+				//WSN implementation
+				//
+				//				System.out.println("original query: " + queryData.getTitle().concat(" " + queryData.getDescription()).concat(" " + queryData.getNarrative()));
+				//				String queryContent = WSD.disambiguate(queryData.getTitle().concat(" " + queryData.getDescription()).concat(" " + queryData.getNarrative()));
+				//				String titleQuery = QueryParser.escape(queryData.getTitle()).trim();
+				////				
+				////				WSD wsd = new WSD();
+				////				
+				////				String queryContent = wsd.disambiguate(QueryParser.escape(queryData.getTitle()).trim(), QueryParser.escape(queryData.getDescription()).concat(queryData.getNarrative()).trim());
+				////				
+				//				System.out.println("query content: " + queryContent);
+				//				queryContent = QueryParser.escape(queryContent).trim();
 
 				Query query;
 
-				if (queryContent.length() > 0) {
+				if (!queryContent.isEmpty() | queryContent.length() > 0) {
 
 					query = queryParser.parse(queryContent);
 
@@ -166,6 +198,8 @@ public class Application {
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
 						ScoreDoc hit = hits[hitIndex];
 						writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
+								" " + hitIndex + " " + hit.score + ITER_NUM);
+						System.out.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
 								" " + hitIndex + " " + hit.score + ITER_NUM);
 					}
 				}
@@ -181,29 +215,29 @@ public class Application {
 		}
 	}
 
-    private static List<String> splitNarrIntoRelNotRel(String narrative) {
-        StringBuilder relevantNarr = new StringBuilder();
-        StringBuilder irrelevantNarr = new StringBuilder();
-        List<String> splitNarrative = new ArrayList<>();
+	private static List<String> splitNarrIntoRelNotRel(String narrative) {
+		StringBuilder relevantNarr = new StringBuilder();
+		StringBuilder irrelevantNarr = new StringBuilder();
+		List<String> splitNarrative = new ArrayList<>();
 
-        BreakIterator bi = BreakIterator.getSentenceInstance();
-        bi.setText(narrative);
-        int index = 0;
-        while (bi.next() != BreakIterator.DONE) {
-            String sentence = narrative.substring(index, bi.current());
+		BreakIterator bi = BreakIterator.getSentenceInstance();
+		bi.setText(narrative);
+		int index = 0;
+		while (bi.next() != BreakIterator.DONE) {
+			String sentence = narrative.substring(index, bi.current());
 
-            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
-                relevantNarr.append(sentence.replaceAll(
-                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
-                        ""));
-            } else {
-                // This produces an error when parsing into query - starts with an <eof>?!
-                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
-            }
-            index = bi.current();
-        }
-        splitNarrative.add(relevantNarr.toString());
-        splitNarrative.add(irrelevantNarr.toString());
-        return splitNarrative;
-    }
+			if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+				relevantNarr.append(sentence.replaceAll(
+						"a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+						""));
+			} else {
+				// This produces an error when parsing into query - starts with an <eof>?!
+				irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
+			}
+			index = bi.current();
+		}
+		splitNarrative.add(relevantNarr.toString());
+		splitNarrative.add(irrelevantNarr.toString());
+		return splitNarrative;
+	}
 }
