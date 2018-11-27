@@ -7,6 +7,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -24,7 +25,8 @@ import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.lucene.search.BooleanQuery;
+
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.document.IntPoint;
 
@@ -68,14 +70,14 @@ public class Application {
 			Directory directory;
 
 			// so we don't need to parse &^ index everytime
-            // THEREFORE everytime we want to test we need to delete the index
-            // in terminal use rm -rf /Index/ to delete the index dir.
+			// THEREFORE everytime we want to test we need to delete the index
+			// in terminal use rm -rf /Index/ to delete the index dir.
 			if(!new File(absPathToIndex).exists()){
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 				loadDocs();
 				indexDocuments(similarityModel, analyzer, directory);
 			} else {
-                System.out.println("Using previously loaded data!");
+				System.out.println("Using previously loaded data!");
 				directory = FSDirectory.open(Paths.get(absPathToIndex));
 			}
 
@@ -110,7 +112,7 @@ public class Application {
 
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
-			
+
 			closeIndexWriter(indexWriter);
 
 		} catch (IOException e) {
@@ -119,7 +121,7 @@ public class Application {
 		}
 	}
 	private static void loadDocs() throws IOException {
-		
+
 		System.out.println("loading financial times documents");
 		List<String> finTimesFiles = getFileNamesFromDirTree(absPathToFinTimes);
 		finTimesDocs = loadFinTimesDocs(finTimesFiles);
@@ -146,34 +148,51 @@ public class Application {
 			Map<String, Float> boost = createBoostMap();
 			QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
 
-            PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
+			PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
-                String relevantNarr = splitNarrative.get(0).trim();
-                String irrelevantNarr = splitNarrative.get(1).trim();
+				if(!queryData.getQueryId().isEmpty()) {
+					List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+					String relevantNarr = splitNarrative.get(0).trim();
+					String irrelevantNarr = splitNarrative.get(1).trim();
+					String unlessNarr = splitNarrative.get(2).trim();
 
-				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+					String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription());
 
-				queryContent = queryContent.trim();
+					queryContent = queryContent.trim();
 
-				Query query;
+					Builder booleanQuery = new BooleanQuery.Builder(); 
 
-				if (queryContent.length() > 0) {
+					if(!queryContent.isEmpty())
+						booleanQuery.add(queryParser.parse(queryContent), BooleanClause.Occur.MUST);
 
-					query = queryParser.parse(queryContent);
+					if(!relevantNarr.isEmpty())
+						booleanQuery.add(queryParser.parse(QueryParser.escape(relevantNarr)), BooleanClause.Occur.SHOULD);
+					
+					if(!unlessNarr.isEmpty()) {
+						Builder unlessFilter = new BooleanQuery.Builder()
+								.add(queryParser.parse(QueryParser.escape(unlessNarr)) , BooleanClause.Occur.SHOULD);
+						if(!irrelevantNarr.isEmpty()) {
+							unlessFilter.add(queryParser.parse(QueryParser.escape(irrelevantNarr)), BooleanClause.Occur.MUST);
+						} 
+						booleanQuery.add(unlessFilter.build(), BooleanClause.Occur.SHOULD);
+					} 
 
-					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
+					Query query = booleanQuery.build();
 
-					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
-						ScoreDoc hit = hits[hitIndex];
-						writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
-								" " + hitIndex + " " + hit.score + ITER_NUM);
+					if (queryContent.length() > 0) {
+
+						ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
+
+						for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
+							ScoreDoc hit = hits[hitIndex];
+							writer.println(queryData.getQueryNum() + ITER_NUM + indexSearcher.doc(hit.doc).get("docno") +
+									" " + hitIndex + " " + hit.score + ITER_NUM);
+						}
 					}
 				}
 			}
-
 			closeIndexReader(indexReader);
 			closePrintWriter(writer);
 			System.out.println("queries executed");
@@ -184,29 +203,38 @@ public class Application {
 		}
 	}
 
-    private static List<String> splitNarrIntoRelNotRel(String narrative) {
-        StringBuilder relevantNarr = new StringBuilder();
-        StringBuilder irrelevantNarr = new StringBuilder();
-        List<String> splitNarrative = new ArrayList<>();
+	private static List<String> splitNarrIntoRelNotRel(String narrative) {
+		StringBuilder relevantNarr = new StringBuilder();
+		StringBuilder irrelevantNarr = new StringBuilder();
+		StringBuilder unlessNarr = new StringBuilder(); 
+		List<String> splitNarrative = new ArrayList<>();
 
-        BreakIterator bi = BreakIterator.getSentenceInstance();
-        bi.setText(narrative);
-        int index = 0;
-        while (bi.next() != BreakIterator.DONE) {
-            String sentence = narrative.substring(index, bi.current());
-
-            if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
-                relevantNarr.append(sentence.replaceAll(
-                        "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
-                        ""));
-            } else {
-                // This produces an error when parsing into query - starts with an <eof>?!
-                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT", ""));
-            }
-            index = bi.current();
-        }
-        splitNarrative.add(relevantNarr.toString());
-        splitNarrative.add(irrelevantNarr.toString());
-        return splitNarrative;
-    }
+		BreakIterator bi = BreakIterator.getSentenceInstance();
+		bi.setText(narrative);
+		int index = 0;
+		while (bi.next() != BreakIterator.DONE) {
+			String sentence = narrative.substring(index, bi.current());
+					
+			if (!sentence.contains("not relevant") && !sentence.contains("irrelevant")) {
+				relevantNarr.append(sentence.replaceAll(
+						"a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
+						""));
+			} else {
+				// This produces an error when parsing into query - starts with an <eof>?!
+				if(sentence.contains("unless")) {
+					unlessNarr.append(sentence.substring(0, sentence.indexOf("unless")).replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT|unless", ""));
+					relevantNarr.append(sentence.substring(sentence.indexOf("unless"), sentence.length()).replaceAll(
+							"a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite|unless",
+							""));
+				} else {
+					irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT|", ""));
+				}
+			}
+			index = bi.current();
+		}
+		splitNarrative.add(relevantNarr.toString());
+		splitNarrative.add(irrelevantNarr.toString());
+		splitNarrative.add(unlessNarr.toString());
+		return splitNarrative;
+	}
 }
