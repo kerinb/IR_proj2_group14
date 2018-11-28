@@ -158,17 +158,19 @@ public class Application {
 					String irrelevantNarr = splitNarrative.get(1).trim();
 					String unlessNarr = splitNarrative.get(2).trim();
 
-					String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription());
-
-					queryContent = queryContent.trim();
-
+					String queryTitle = QueryParser.escape(queryData.getTitle()).trim();
+					String queryDescription = QueryParser.escape(queryData.getDescription()).trim();
+					
 					Builder booleanQuery = new BooleanQuery.Builder(); 
 
-					if(!queryContent.isEmpty())
-						booleanQuery.add(queryParser.parse(queryContent), BooleanClause.Occur.MUST);
+					if(!queryTitle.isEmpty())
+						booleanQuery.add(new BoostQuery(queryParser.parse(queryTitle), 4f), BooleanClause.Occur.SHOULD);
+
+					if(!queryDescription.isEmpty())
+						booleanQuery.add(new BoostQuery(queryParser.parse(queryDescription), 1.7f), BooleanClause.Occur.SHOULD);
 
 					if(!relevantNarr.isEmpty())
-						booleanQuery.add(queryParser.parse(QueryParser.escape(relevantNarr)), BooleanClause.Occur.SHOULD);
+						booleanQuery.add(new BoostQuery(queryParser.parse(QueryParser.escape(relevantNarr)), 1.2f), BooleanClause.Occur.SHOULD);
 					
 					if(!unlessNarr.isEmpty()) {
 						Builder unlessFilter = new BooleanQuery.Builder()
@@ -176,12 +178,12 @@ public class Application {
 						if(!irrelevantNarr.isEmpty()) {
 							unlessFilter.add(queryParser.parse(QueryParser.escape(irrelevantNarr)), BooleanClause.Occur.MUST);
 						} 
-						booleanQuery.add(unlessFilter.build(), BooleanClause.Occur.SHOULD);
+						booleanQuery.add(new BoostQuery(unlessFilter.build(), 0.5f), BooleanClause.Occur.SHOULD);
 					} 
 
 					Query query = booleanQuery.build();
 
-					if (queryContent.length() > 0) {
+					if (queryData.getTitle().length() > 0) {
 
 						ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
 
