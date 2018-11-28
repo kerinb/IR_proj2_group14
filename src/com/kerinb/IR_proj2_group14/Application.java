@@ -49,7 +49,7 @@ public class Application {
 
 	private final static String absPathToIndex = String.format("%s/Index", currentRelativePath);
 
-	private static final int MAX_RETURN_RESULTS = 10000;
+	private static final int MAX_RETURN_RESULTS = 1000;
 	private static final String ITER_NUM = " 0 ";
 
 	private static Similarity similarityModel = null;
