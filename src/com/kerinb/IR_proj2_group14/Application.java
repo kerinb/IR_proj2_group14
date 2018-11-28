@@ -14,6 +14,8 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.search.TotalHitCountCollector;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -150,21 +152,28 @@ public class Application {
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
-                List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
+
+			    List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
                 String relevantNarr = splitNarrative.get(0).trim();
-                String irrelevantNarr = splitNarrative.get(1).trim();
 
-				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+				BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
 
-				queryContent = queryContent.trim();
+				if (queryData.getTitle().length() > 0) {
 
-				Query query;
+					Query titleQuery = queryParser.parse(QueryParser.escape(queryData.getTitle()));
+					Query descriptionQuery = queryParser.parse(QueryParser.escape(queryData.getDescription()));
+					Query narrativeQuery = null;
+					if(relevantNarr.length()>0) {
+						narrativeQuery = queryParser.parse(QueryParser.escape(relevantNarr));
+					}
 
-				if (queryContent.length() > 0) {
+					booleanQuery.add(new BoostQuery(titleQuery, (float) 4), BooleanClause.Occur.SHOULD);
+					booleanQuery.add(new BoostQuery(descriptionQuery, (float) 1.7), BooleanClause.Occur.SHOULD);
 
-					query = queryParser.parse(queryContent);
-
-					ScoreDoc[] hits = indexSearcher.search(query, MAX_RETURN_RESULTS).scoreDocs;
+					if (narrativeQuery != null) {
+						booleanQuery.add(new BoostQuery(narrativeQuery, (float) 1.2), BooleanClause.Occur.SHOULD);
+					}
+					ScoreDoc[] hits = indexSearcher.search(booleanQuery.build(), MAX_RETURN_RESULTS).scoreDocs;
 
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
 						ScoreDoc hit = hits[hitIndex];
@@ -200,7 +209,6 @@ public class Application {
                         "a relevant document identifies|a relevant document could|a relevant document may|a relevant document must|a relevant document will|a document will|to be relevant|relevant documents|a document must|relevant|will contain|will discuss|will provide|must cite",
                         ""));
             } else {
-                // This produces an error when parsing into query - starts with an <eof>?!
                 irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT", ""));
             }
             index = bi.current();
