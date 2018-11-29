@@ -43,8 +43,8 @@ class ApplicationLibrary {
 
     static Map<String, Float> createBoostMap() {
         Map<String, Float> boost = new HashMap<>();
-        boost.put("headline", (float) 0.1);
-        boost.put("text", (float) 0.9);
+        boost.put("headline", (float) 0.2);
+        boost.put("text", (float) 0.8);
         return boost;
     }
 
