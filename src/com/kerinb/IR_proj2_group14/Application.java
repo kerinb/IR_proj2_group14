@@ -160,12 +160,34 @@ public class Application {
 
 				if (queryData.getTitle().length() > 0) {
 
-					Query titleQuery = queryParser.parse(QueryParser.escape(queryData.getTitle()));
-					Query descriptionQuery = queryParser.parse(QueryParser.escape(queryData.getDescription()));
+					
+					String title = QueryParser.escape(queryData.getTitle());
+					String expandedTitle = WordnetSyn.getSynonyms(title);
+					System.out.println("title: " + expandedTitle);
+					
+					String description = QueryParser.escape(queryData.getDescription());
+					String expandedDesc = WordnetSyn.getSynonyms(description);
+					System.out.println("description:" + expandedDesc);
+			
+									
+					Query titleQuery = queryParser.parse(expandedTitle);
+					Query descriptionQuery = queryParser.parse(expandedDesc);
+					
+					
 					Query narrativeQuery = null;
 					if(relevantNarr.length()>0) {
-						narrativeQuery = queryParser.parse(QueryParser.escape(relevantNarr));
+						String expandedNarr = WordnetSyn.getSynonyms(relevantNarr);
+						System.out.println("relevant narr: " + expandedNarr);
+						narrativeQuery = queryParser.parse(expandedNarr);
 					}
+							
+					
+//					Query titleQuery = queryParser.parse(QueryParser.escape(queryData.getTitle()));
+//					Query descriptionQuery = queryParser.parse(QueryParser.escape(queryData.getDescription()));
+//					Query narrativeQuery = null;
+//					if(relevantNarr.length()>0) {
+//						narrativeQuery = queryParser.parse(QueryParser.escape(relevantNarr));
+//					}
 
 					booleanQuery.add(new BoostQuery(titleQuery, (float) 4), BooleanClause.Occur.SHOULD);
 					booleanQuery.add(new BoostQuery(descriptionQuery, (float) 1.7), BooleanClause.Occur.SHOULD);
@@ -173,6 +195,12 @@ public class Application {
 					if (narrativeQuery != null) {
 						booleanQuery.add(new BoostQuery(narrativeQuery, (float) 1.2), BooleanClause.Occur.SHOULD);
 					}
+					
+					
+					
+					
+					
+					
 					ScoreDoc[] hits = indexSearcher.search(booleanQuery.build(), MAX_RETURN_RESULTS).scoreDocs;
 
 					for (int hitIndex = 0; hitIndex < hits.length; hitIndex++) {
