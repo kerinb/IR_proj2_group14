@@ -17,7 +17,6 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -62,16 +61,9 @@ public class Application {
 
 			similarityModel = callSetRankingModel(args[0]);
 			analyzer =  callSetAnalyzer(args[1]);
-
-			Directory directory;
-			if(!new File(absPathToIndex).exists()){
-				directory = FSDirectory.open(Paths.get(absPathToIndex));
-				loadDocs();
-				indexDocuments(similarityModel, analyzer, directory);
-			} else {
-				directory = FSDirectory.open(Paths.get(absPathToIndex));
-			}
-
+			Directory directory = FSDirectory.open(Paths.get(absPathToIndex));
+			loadDocs();
+			indexDocuments(similarityModel, analyzer, directory);
 			System.out.println("loading and executing queries");
 			executeQueries(directory);
 
@@ -124,13 +116,13 @@ public class Application {
 		fedRegisterDocs = loadFedRegisterDocs(absPathToFedRegister);
 		System.out.println("loaded federal register documents");
 
-		System.out.println("loading foreign broadcast information service documents");
-		fbisDocs= loadFBISDocs(absPathToFBIS);
-		System.out.println("loaded foreign broadcast information service documents");
-
 		System.out.println("loading la times documents");
 		laTimesDocs= loadLaTimesDocs(absPathToLaTimes);
 		System.out.println("loaded la times documents");
+		
+		System.out.println("loading foreign broadcast information service documents");
+		fbisDocs= loadFBISDocs(absPathToFBIS);
+		System.out.println("loaded foreign broadcast information service documents");
 	}
 
 	private static void executeQueries(Directory directory) throws ParseException {
