@@ -24,6 +24,9 @@ import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.document.IntPoint;
 
 import static com.kerinb.IR_proj2_group14.ApplicationLibrary.*;
 import static com.kerinb.IR_proj2_group14.DocumentFiles.FBIS.FBISProcessor.loadFBISDocs;
@@ -104,8 +107,7 @@ public class Application {
 
 			System.out.println("indexing la times document collection");
 			indexWriter.addDocuments(laTimesDocs);
-			System.out.println("la times indexed");
-			
+
 			System.out.println("indexing foreign broadcast information service document collection");
 			indexWriter.addDocuments(fbisDocs);
 			
@@ -144,15 +146,16 @@ public class Application {
 			Map<String, Float> boost = createBoostMap();
 			QueryParser queryParser = new MultiFieldQueryParser(new String[]{"headline", "text"}, analyzer, boost);
 
-			PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
+            PrintWriter writer = new PrintWriter(absPathToSearchResults, "UTF-8");
 			List<QueryObject> loadedQueries = loadQueriesFromFile();
 
 			for (QueryObject queryData : loadedQueries) {
                 List<String> splitNarrative = splitNarrIntoRelNotRel(queryData.getNarrative());
-                String relevantNarr = splitNarrative.get(0);
-                //String irrelevantNarr = splitNarrative.get(1).trim();
+                String relevantNarr = splitNarrative.get(0).trim();
+                String irrelevantNarr = splitNarrative.get(1).trim();
 
 				String queryContent = QueryParser.escape(queryData.getTitle() + " " + queryData.getDescription() + " " + relevantNarr);
+
 				queryContent = queryContent.trim();
 
 				Query query;
@@ -198,7 +201,7 @@ public class Application {
                         ""));
             } else {
                 // This produces an error when parsing into query - starts with an <eof>?!
-                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant", ""));
+                irrelevantNarr.append(sentence.replaceAll("are also not relevant|are not relevant|are irrelevant|is not relevant|not|NOT", ""));
             }
             index = bi.current();
         }
